@@ -5,8 +5,8 @@
 // Single entry point for the Google Docs MCP Server.
 //
 // Usage:
-//   google-docs-mcp          Start the MCP server (default)
-//   google-docs-mcp auth     Run the interactive OAuth flow
+//   @a-bonus/google-docs-mcp          Start the MCP server (default)
+//   @a-bonus/google-docs-mcp auth     Run the interactive OAuth flow
 
 import { FastMCP } from 'fastmcp';
 import { initializeGoogleClient } from './clients.js';

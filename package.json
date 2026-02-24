@@ -1,9 +1,9 @@
 {
-  "name": "google-docs-mcp",
+  "name": "@a-bonus/google-docs-mcp",
   "version": "1.0.0",
   "type": "module",
   "bin": {
-    "google-docs-mcp": "./dist/index.js"
+    "google-docs-mcp": "dist/index.js"
   },
   "files": [
     "dist/",

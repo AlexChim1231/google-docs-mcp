@@ -88,7 +88,7 @@ Once configured, you can use the MCP server with AI assistants in VS Code:
 
 1. **Re-authorize** - Delete `token.json` and run the server manually once:
    ```bash
-   cd /path/to/your/google-docs-mcp
+   cd /path/to/your/mcp-googledocs-server
    node dist/index.js
    ```
 2. **Follow the authorization flow** again

@@ -24,7 +24,7 @@ Connect Claude Desktop, Cursor, or any MCP client to your Google Docs, Google Sh
 ```bash
 GOOGLE_CLIENT_ID="your-client-id" \
 GOOGLE_CLIENT_SECRET="your-client-secret" \
-npx -y google-docs-mcp auth
+npx -y @a-bonus/google-docs-mcp auth
 ```
 
 This opens your browser for Google authorization. After you approve, the refresh token is saved to `~/.config/google-docs-mcp/token.json`.
@@ -38,7 +38,7 @@ This opens your browser for Google authorization. After you approve, the refresh
   "mcpServers": {
     "google-docs": {
       "command": "npx",
-      "args": ["-y", "google-docs-mcp"],
+      "args": ["-y", "@a-bonus/google-docs-mcp"],
       "env": {
         "GOOGLE_CLIENT_ID": "your-client-id",
         "GOOGLE_CLIENT_SECRET": "your-client-secret"
@@ -185,7 +185,7 @@ For Google Workspace with domain-wide delegation:
   "mcpServers": {
     "google-docs": {
       "command": "npx",
-      "args": ["-y", "google-docs-mcp"],
+      "args": ["-y", "@a-bonus/google-docs-mcp"],
       "env": {
         "SERVICE_ACCOUNT_PATH": "/path/to/service-account-key.json",
         "GOOGLE_IMPERSONATE_USER": "user@yourdomain.com"
@@ -212,7 +212,7 @@ Set `GOOGLE_MCP_PROFILE` to store tokens in a profile-specific subdirectory. Thi
   "mcpServers": {
     "google-docs": {
       "command": "npx",
-      "args": ["-y", "google-docs-mcp"],
+      "args": ["-y", "@a-bonus/google-docs-mcp"],
       "env": {
         "GOOGLE_CLIENT_ID": "...",
         "GOOGLE_CLIENT_SECRET": "...",
@@ -248,11 +248,11 @@ Without `GOOGLE_MCP_PROFILE`, behavior is unchanged.
 
 - **Server won't start:**
   - Verify `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set in the `env` block of your MCP config.
-  - Try running manually: `npx google-docs-mcp` and check stderr for errors.
+  - Try running manually: `npx @a-bonus/google-docs-mcp` and check stderr for errors.
 - **Authorization errors:**
   - Ensure Docs, Sheets, and Drive APIs are enabled in Google Cloud Console.
   - Confirm your email is listed as a Test User on the OAuth consent screen.
-  - Re-authorize: `npx google-docs-mcp auth`
+  - Re-authorize: `npx @a-bonus/google-docs-mcp auth`
   - Delete `~/.config/google-docs-mcp/token.json` and re-authorize if upgrading.
 - **Tab errors:**
   - Use `listDocumentTabs` to see available tab IDs.

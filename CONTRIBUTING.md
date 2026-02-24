@@ -48,7 +48,7 @@ Point your MCP client at the local build for testing:
   "mcpServers": {
     "google-docs": {
       "command": "node",
-      "args": ["/absolute/path/to/google-docs-mcp/dist/index.js"]
+      "args": ["/absolute/path/to/mcp-googledocs-server/dist/index.js"]
     }
   }
 }
@@ -162,4 +162,4 @@ Releases are automated via GitHub Actions. To publish a new version:
 3. Tag the commit: `git tag v1.2.3 && git push origin v1.2.3`
 4. The [release workflow](.github/workflows/release.yml) will run CI checks, publish to npm, and create a GitHub Release
 
-The npm package is published as `google-docs-mcp`.
+The npm package is published as `@a-bonus/google-docs-mcp`.
