@@ -81,22 +81,85 @@ export function register(server: FastMCP) {
           }
         }
 
-        // 3. Delete existing content FIRST in a separate API call
+        // 3. Delete existing content
         if (endIndex > startIndex) {
           const deleteRange: any = { startIndex, endIndex };
           if (args.tabId) {
             deleteRange.tabId = args.tabId;
           }
-          log.info(`Deleting content from index ${startIndex} to ${endIndex} (separate API call)`);
+          log.info(`Deleting content from index ${startIndex} to ${endIndex}`);
           await GDocsHelpers.executeBatchUpdate(docs, args.documentId, [
             {
               deleteContentRange: { range: deleteRange },
             },
           ]);
-          log.info(`Delete complete. Document now empty.`);
+          log.info(`Delete complete.`);
         }
 
-        // 4. Convert markdown and insert (indices calculated for empty document)
+        // 4. Clean the surviving trailing paragraph.
+        //    deleteContentRange always leaves one trailing paragraph that cannot
+        //    be deleted. If it has bullet list membership or text formatting from
+        //    the old content, all subsequently inserted text inherits those
+        //    properties, corrupting the new document. We strip both bullets and
+        //    text styles from the survivor before inserting.
+        {
+          // Re-read to get the survivor's endIndex (always a short document now)
+          const docAfterDelete = await docs.documents.get({
+            documentId: args.documentId,
+            includeTabsContent: !!args.tabId,
+            fields: args.tabId ? 'tabs' : 'body(content(startIndex,endIndex))',
+          });
+
+          let survivorContent: any;
+          if (args.tabId) {
+            const tab = GDocsHelpers.findTabById(docAfterDelete.data, args.tabId);
+            survivorContent = tab?.documentTab?.body?.content;
+          } else {
+            survivorContent = docAfterDelete.data.body?.content;
+          }
+          const survivorEnd = survivorContent
+            ? survivorContent[survivorContent.length - 1].endIndex!
+            : startIndex + 1;
+
+          const survivorRange: any = { startIndex, endIndex: survivorEnd };
+          if (args.tabId) {
+            survivorRange.tabId = args.tabId;
+          }
+
+          const cleanupRequests: any[] = [
+            { deleteParagraphBullets: { range: survivorRange } },
+            {
+              updateTextStyle: {
+                range: survivorRange,
+                textStyle: {
+                  underline: false,
+                  bold: false,
+                  italic: false,
+                  strikethrough: false,
+                  foregroundColor: {},
+                  backgroundColor: {},
+                },
+                fields:
+                  'underline,bold,italic,strikethrough,foregroundColor,backgroundColor',
+              },
+            },
+          ];
+
+          try {
+            await GDocsHelpers.executeBatchUpdate(
+              docs,
+              args.documentId,
+              cleanupRequests
+            );
+            log.info(
+              `Cleaned surviving paragraph (bullets + text style) at range ${startIndex}-${survivorEnd}`
+            );
+          } catch (e: any) {
+            log.info(`Survivor cleanup skipped: ${e.message}`);
+          }
+        }
+
+        // 5. Convert markdown and insert (indices calculated for empty document)
         log.info(
           `Inserting markdown starting at index ${startIndex} (after delete, document should be empty)`
         );
