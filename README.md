@@ -279,6 +279,7 @@ Without `GOOGLE_MCP_PROFILE`, behavior is unchanged.
 - **Tab errors:**
   - Use `listDocumentTabs` to see available tab IDs.
   - Omit `tabId` for single-tab documents.
+- **High CPU with multiple MCP sessions:** Some clients call `tools/list` very often. FastMCP otherwise recomputes JSON Schema for every tool on every request, which can pin a CPU core per process. This server precomputes the payload once before stdio starts and replaces the `tools/list` handler with a cached snapshot. If you still see sustained load, capture a few seconds with `sample <pid> 1 10` (macOS) or `node --cpu-prof` and report it.
 
 ---
 
