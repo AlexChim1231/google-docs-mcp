@@ -52,7 +52,7 @@ The server starts automatically when your MCP client needs it.
 
 ### Remote Deployment (Cloud Run)
 
-Deploy once for your team -- no local installs required. The server uses MCP OAuth 2.1 so Cursor handles authentication automatically.
+Deploy once for your team -- no local installs required. The server uses MCP OAuth 2.1 so your MCP client handles authentication automatically.
 
 ```bash
 gcloud run deploy google-docs-mcp \
@@ -60,10 +60,10 @@ gcloud run deploy google-docs-mcp \
   --region europe-west3 \
   --port 8080 \
   --allow-unauthenticated \
-  --set-env-vars "^|^MCP_TRANSPORT=httpStream|BASE_URL=https://your-service.run.app|GOOGLE_CLIENT_ID=...|GOOGLE_CLIENT_SECRET=..."
+  --set-env-vars "^|^MCP_TRANSPORT=httpStream|BASE_URL=https://your-service.run.app|GOOGLE_CLIENT_ID=...|GOOGLE_CLIENT_SECRET=...|TOKEN_STORE=firestore|JWT_SIGNING_KEY=your-secret-key"
 ```
 
-Then each user just adds the URL to Cursor -- no npx, no tokens, no local setup:
+Then each user just adds the URL to their MCP client -- no npx, no tokens, no local setup:
 
 ```json
 {
@@ -76,13 +76,13 @@ Then each user just adds the URL to Cursor -- no npx, no tokens, no local setup:
 }
 ```
 
-Cursor will prompt for Google sign-in on first connection. See [Remote Deployment](#remote-deployment) for details.
+Your MCP client will prompt for Google sign-in on first connection. See [Remote Deployment](#remote-deployment) for details.
 
 ---
 
 ## What Can It Do?
 
-**67 tools** across Google Docs, Sheets, and Drive.
+Tools across Google Docs, Sheets, and Drive:
 
 ### Google Docs
 
@@ -224,18 +224,24 @@ Supported: headings, bold, italic, strikethrough, links, bullet/numbered lists, 
 
 ## Remote Deployment
 
-Deploy the server centrally on Google Cloud Run (or any container host) so your team can use it without local installs. The server uses **MCP OAuth 2.1** with FastMCP's built-in `GoogleProvider` -- Cursor handles the entire auth flow automatically.
+Deploy the server centrally on Google Cloud Run (or any container host) so your team can use it without local installs. The server uses **MCP OAuth 2.1** with FastMCP's built-in `GoogleProvider` -- MCP clients handle the auth flow automatically.
+
+Visit the server root URL (`/`) for setup instructions and a ready-to-copy client config.
 
 ### Environment Variables
 
-| Variable               | Description                                                         |
-| ---------------------- | ------------------------------------------------------------------- |
-| `MCP_TRANSPORT`        | Set to `httpStream` to enable remote mode (default: `stdio`)        |
-| `BASE_URL`             | Public URL of the deployed server (required for OAuth redirects)    |
-| `GOOGLE_CLIENT_ID`     | OAuth client ID (Web application type)                              |
-| `GOOGLE_CLIENT_SECRET` | OAuth client secret                                                 |
-| `ALLOWED_DOMAINS`      | Comma-separated list of allowed Google Workspace domains (optional) |
-| `PORT`                 | HTTP port (default: `8080`)                                         |
+| Variable               | Description                                                              |
+| ---------------------- | ------------------------------------------------------------------------ |
+| `MCP_TRANSPORT`        | Set to `httpStream` to enable remote mode (default: `stdio`)             |
+| `BASE_URL`             | Public URL of the deployed server (required for OAuth redirects)         |
+| `GOOGLE_CLIENT_ID`     | OAuth client ID (Web application type)                                   |
+| `GOOGLE_CLIENT_SECRET` | OAuth client secret                                                      |
+| `ALLOWED_DOMAINS`      | Comma-separated list of allowed Google Workspace domains (optional)      |
+| `PORT`                 | HTTP port (default: `8080`)                                              |
+| `TOKEN_STORE`          | Set to `firestore` for persistent token storage (default: in-memory)     |
+| `JWT_SIGNING_KEY`      | Fixed signing key so tokens survive restarts (auto-generated if not set) |
+| `REFRESH_TOKEN_TTL`    | Refresh token lifetime in seconds (default: `2592000` / 30 days)         |
+| `GCLOUD_PROJECT`       | GCP project ID for Firestore (required when `TOKEN_STORE=firestore`)     |
 
 ### Setup
 
@@ -250,17 +256,17 @@ gcloud run deploy google-docs-mcp \
   --region europe-west3 \
   --port 8080 \
   --allow-unauthenticated \
-  --set-env-vars "^|^MCP_TRANSPORT=httpStream|BASE_URL=https://your-service.run.app|ALLOWED_DOMAINS=yourdomain.com|GOOGLE_CLIENT_ID=...|GOOGLE_CLIENT_SECRET=..."
+  --set-env-vars "^|^MCP_TRANSPORT=httpStream|BASE_URL=https://your-service.run.app|ALLOWED_DOMAINS=yourdomain.com|GOOGLE_CLIENT_ID=...|GOOGLE_CLIENT_SECRET=...|TOKEN_STORE=firestore|JWT_SIGNING_KEY=your-secret-key"
 ```
 
 > **Note:** The `^|^` prefix changes the env var delimiter from `,` to `|` because `ALLOWED_DOMAINS` contains commas.
 
 ### How It Works
 
-- The server is **stateless** -- no database, no token storage
-- Each request carries a Google OAuth access token; the server uses it for one API call and discards it
+- By default, OAuth sessions are stored in memory and lost on restart
+- For production, set `TOKEN_STORE=firestore` and `JWT_SIGNING_KEY` for persistent auth across deploys and cold starts
 - `ALLOWED_DOMAINS` restricts access to specific Google Workspace domains
-- Cursor manages token refresh automatically (tokens expire after 1 hour)
+- Access tokens refresh automatically; inactive sessions expire after 30 days
 - Users can revoke access at any time via [Google Account permissions](https://myaccount.google.com/permissions)
 
 ---
@@ -370,6 +376,8 @@ Without `GOOGLE_MCP_PROFILE`, behavior is unchanged.
 
 <details>
 <summary>Step-by-step Google Cloud Console instructions</summary>
+
+> For **remote deployment**, create an OAuth client of type **Web application** (not Desktop app). Use Desktop app only for local stdio usage.
 
 1. **Go to Google Cloud Console:** Open [console.cloud.google.com](https://console.cloud.google.com/)
 2. **Create or Select a Project:** Click the project dropdown > "NEW PROJECT". Name it (e.g., "MCP Docs Server") and click "CREATE".
