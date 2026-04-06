@@ -13,7 +13,8 @@
 //   BASE_URL=https://...               Public URL for OAuth redirects
 //   ALLOWED_DOMAINS=scio.cz,...        Restrict to specific Google Workspace domains
 
-import { FastMCP, GoogleProvider } from 'fastmcp';
+import { FastMCP } from 'fastmcp';
+import { OAuthProxy } from 'fastmcp/auth';
 import {
   buildCachedToolsListPayload,
   collectToolsWhileRegistering,
@@ -23,6 +24,7 @@ import { initializeGoogleClient } from './clients.js';
 import { registerAllTools } from './tools/index.js';
 import { wrapServerForRemote } from './remoteWrapper.js';
 import { registerLandingPage } from './landingPage.js';
+import { registerDownloadRoute } from './downloadProxy.js';
 import { FirestoreTokenStorage } from './firestoreTokenStorage.js';
 import { logger } from './logger.js';
 
@@ -61,32 +63,85 @@ if (isRemote) {
   }
 }
 
-const server = new FastMCP({
-  name: 'Ultimate Google Docs & Sheets MCP Server',
-  version: '1.0.0',
-  ...(isRemote && {
-    auth: new GoogleProvider({
-      allowedRedirectUriPatterns: ['http://localhost:*', `${process.env.BASE_URL}/*`, 'cursor://*'],
+const GOOGLE_API_SCOPES = [
+  'openid',
+  'email',
+  'https://www.googleapis.com/auth/documents',
+  'https://www.googleapis.com/auth/spreadsheets',
+  'https://www.googleapis.com/auth/drive',
+  'https://www.googleapis.com/auth/script.external_request',
+];
+
+const oauthProxy = isRemote
+  ? new OAuthProxy({
+      upstreamAuthorizationEndpoint: 'https://accounts.google.com/o/oauth2/v2/auth',
+      upstreamTokenEndpoint: 'https://oauth2.googleapis.com/token',
+      upstreamClientId: process.env.GOOGLE_CLIENT_ID!,
+      upstreamClientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       baseUrl: process.env.BASE_URL!,
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      scopes: [
-        'openid',
-        'email',
-        'https://www.googleapis.com/auth/documents',
-        'https://www.googleapis.com/auth/spreadsheets',
-        'https://www.googleapis.com/auth/drive',
-        'https://www.googleapis.com/auth/script.external_request',
-      ],
-      ...(process.env.JWT_SIGNING_KEY && { jwtSigningKey: process.env.JWT_SIGNING_KEY }),
-      ...(process.env.REFRESH_TOKEN_TTL && {
-        refreshTokenTtl: parseInt(process.env.REFRESH_TOKEN_TTL),
-      }),
+      scopes: GOOGLE_API_SCOPES,
+      allowedRedirectUriPatterns: ['http://localhost:*', `${process.env.BASE_URL}/*`, 'cursor://*'],
+      jwtSigningKey: process.env.JWT_SIGNING_KEY,
+      encryptionKey: process.env.TOKEN_ENCRYPTION_KEY,
+      consentRequired: false,
+      accessTokenTtl: 2592000,
+      refreshTokenTtl: 2592000,
       ...(process.env.TOKEN_STORE === 'firestore' && {
         tokenStorage: new FirestoreTokenStorage(process.env.GCLOUD_PROJECT),
       }),
+    })
+  : undefined;
+
+if (oauthProxy) {
+  // issueSwappedTokens() inlines the TTL logic: it checks
+  // upstreamTokens.expiresIn > 0 BEFORE config.accessTokenTtl.
+  // Google always returns expiresIn=3600, so our 30-day config is
+  // never reached. Zero it out so the config fallback is used.
+  const origIssue = (oauthProxy as any).issueSwappedTokens.bind(oauthProxy);
+  (oauthProxy as any).issueSwappedTokens = async function (
+    clientId: string,
+    upstreamTokens: any,
+  ) {
+    if (this.config.accessTokenTtl) {
+      return origIssue(clientId, { ...upstreamTokens, expiresIn: 0 });
+    }
+    return origIssue(clientId, upstreamTokens);
+  };
+}
+
+const server = new FastMCP({
+  name: 'Ultimate Google Docs & Sheets MCP Server',
+  version: '1.0.0',
+  ...(isRemote &&
+    oauthProxy && {
+      authenticate: async (request: any) => {
+        if (!request) return undefined;
+        const authHeader = request.headers?.authorization;
+        if (!authHeader?.startsWith('Bearer ')) return undefined;
+        const token = authHeader.slice(7);
+        const upstreamTokens = await oauthProxy.loadUpstreamTokens(token);
+        if (!upstreamTokens) return undefined;
+        return {
+          accessToken: upstreamTokens.accessToken,
+          refreshToken: upstreamTokens.refreshToken,
+          expiresAt: upstreamTokens.expiresIn
+            ? Math.floor(Date.now() / 1000) + upstreamTokens.expiresIn
+            : undefined,
+          idToken: upstreamTokens.idToken,
+          scopes: upstreamTokens.scope,
+        };
+      },
+      oauth: {
+        enabled: true,
+        authorizationServer: oauthProxy.getAuthorizationServerMetadata(),
+        protectedResource: {
+          authorizationServers: [process.env.BASE_URL!],
+          resource: process.env.BASE_URL!,
+          scopesSupported: GOOGLE_API_SCOPES,
+        },
+        proxy: oauthProxy,
+      },
     }),
-  }),
 });
 
 const registeredTools: Parameters<FastMCP['addTool']>[0][] = [];
@@ -98,6 +153,7 @@ try {
   if (isRemote) {
     logger.info('Starting in remote mode (httpStream + MCP OAuth 2.1)...');
     registerLandingPage(server, registeredTools.length);
+    registerDownloadRoute(server);
 
     const port = parseInt(process.env.PORT || '8080');
     await server.start({
