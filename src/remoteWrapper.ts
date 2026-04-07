@@ -1,16 +1,12 @@
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { createHash } from 'node:crypto';
 import { getAuthSession, requireAuth, UserError } from 'fastmcp';
 import type { FastMCP } from 'fastmcp';
 import { google, docs_v1, drive_v3, sheets_v4, script_v1 } from 'googleapis';
 import { OAuth2Client } from 'google-auth-library';
 import { logger } from './logger.js';
 
-function hashToken(token: string): string {
-  return createHash('sha256').update(token).digest('hex');
-}
-
 export interface RequestClients {
+  accessToken: string;
   auth: OAuth2Client;
   docs: docs_v1.Docs;
   sheets: sheets_v4.Sheets;
@@ -21,32 +17,32 @@ export interface RequestClients {
 export const requestClients = new AsyncLocalStorage<RequestClients>();
 
 const allowedDomains = (process.env.ALLOWED_DOMAINS || '').split(',').filter(Boolean);
-const domainCache = new Map<string, boolean>();
 
-async function checkDomain(tokenHash: string, accessToken: string): Promise<boolean> {
+function checkDomain(idToken?: string): boolean {
   if (allowedDomains.length === 0) return true;
-  const cached = domainCache.get(tokenHash);
-  if (cached !== undefined) return cached;
+  if (!idToken) return false;
 
+  const payload = idToken.split('.')[1];
+  if (!payload) return false;
   try {
-    const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
-    if (!res.ok) return false;
-    const { hd } = await res.json();
-    const allowed = hd ? allowedDomains.includes(hd) : false;
-    domainCache.set(tokenHash, allowed);
-    setTimeout(() => domainCache.delete(tokenHash), 3_600_000);
-    return allowed;
+    const { hd } = JSON.parse(Buffer.from(payload, 'base64url').toString());
+    return hd ? allowedDomains.includes(hd) : false;
   } catch {
     return false;
   }
 }
 
-function createClients(accessToken: string): RequestClients {
-  const auth = new OAuth2Client();
-  auth.setCredentials({ access_token: accessToken });
+function createClients(accessToken: string, refreshToken?: string): RequestClients {
+  const auth = new OAuth2Client(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+  );
+  auth.setCredentials({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+  });
   return {
+    accessToken,
     auth,
     docs: google.docs({ version: 'v1', auth }),
     sheets: google.sheets({ version: 'v4', auth }),
@@ -79,14 +75,12 @@ export function wrapServerForRemote(server: FastMCP): void {
         ? (auth: any) => requireAuth(auth) && (toolDef.canAccess as Function)(auth)
         : requireAuth,
       execute: async (args: any, context: any) => {
-        const { accessToken } = getAuthSession(context.session);
-
-        const tokenHash = hashToken(accessToken);
-        if (!(await checkDomain(tokenHash, accessToken))) {
+        const { accessToken, refreshToken, idToken } = getAuthSession(context.session);
+        if (!checkDomain(idToken)) {
           throw new UserError('Your Google account domain is not allowed on this server.');
         }
 
-        const clients = createClients(accessToken);
+        const clients = createClients(accessToken, refreshToken);
         return requestClients.run(clients, () => originalExecute(args, context));
       },
     });

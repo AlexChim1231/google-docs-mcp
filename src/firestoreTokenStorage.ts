@@ -15,24 +15,15 @@ export class FirestoreTokenStorage implements TokenStorage {
     this.db = new Firestore({ projectId });
   }
 
-  async save(key: string, value: unknown, ttl?: number): Promise<void> {
+  async save(key: string, value: unknown, _ttl?: number): Promise<void> {
     const doc = this.db.collection(COLLECTION).doc(encodeKey(key));
-    const data: Record<string, unknown> = { value, createdAt: Date.now() };
-    if (ttl) {
-      data.expiresAt = Date.now() + ttl * 1000;
-    }
-    await doc.set(data);
+    await doc.set({ value, createdAt: Date.now() });
   }
 
   async get(key: string): Promise<unknown | null> {
     const doc = await this.db.collection(COLLECTION).doc(encodeKey(key)).get();
     if (!doc.exists) return null;
-    const data = doc.data()!;
-    if (data.expiresAt && Date.now() > (data.expiresAt as number)) {
-      await this.delete(key);
-      return null;
-    }
-    return data.value;
+    return doc.data()!.value;
   }
 
   async delete(key: string): Promise<void> {
@@ -40,15 +31,7 @@ export class FirestoreTokenStorage implements TokenStorage {
   }
 
   async cleanup(): Promise<void> {
-    const now = Date.now();
-    const expired = await this.db
-      .collection(COLLECTION)
-      .where('expiresAt', '<=', now)
-      .limit(500)
-      .get();
-    const batch = this.db.batch();
-    expired.docs.forEach((doc) => batch.delete(doc.ref));
-    if (!expired.empty) await batch.commit();
+    // FastMCP handles token expiry internally via delete() calls.
   }
 }
 

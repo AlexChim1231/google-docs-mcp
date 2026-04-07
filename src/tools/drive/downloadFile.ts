@@ -1,10 +1,14 @@
 import type { FastMCP } from 'fastmcp';
-import { UserError } from 'fastmcp';
+import { UserError, imageContent } from 'fastmcp';
 import { z } from 'zod';
 import fs from 'node:fs';
 import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { getDriveClient } from '../../clients.js';
+import { requestClients } from '../../remoteWrapper.js';
+import { createDownloadToken } from '../../downloadProxy.js';
+
+const isRemote = process.env.MCP_TRANSPORT === 'httpStream';
 
 export const WORKSPACE_EXPORT_DEFAULTS: Record<string, string> = {
   'application/vnd.google-apps.document': 'text/markdown',
@@ -77,6 +81,15 @@ const DownloadFileParameters = z.object({
       'If true, return text content in the response (up to 50KB) alongside saving the file. ' +
         'Works for text/*, application/json. For binary files, only the save path is returned.'
     ),
+  returnAs: z
+    .enum(['url', 'content'])
+    .optional()
+    .default('url')
+    .describe(
+      'Remote mode only. ' +
+        '"url" (default): returns a short-lived download URL -- use curl -o to save to disk. ' +
+        '"content": returns file content inline (text, image, or base64 resource).'
+    ),
 });
 
 export function register(server: FastMCP) {
@@ -93,9 +106,7 @@ export function register(server: FastMCP) {
       const drive = await getDriveClient();
       log.info(`Downloading file ${args.fileId}${args.savePath ? ` to ${args.savePath}` : ''}`);
 
-      let resolvedSavePath = args.savePath;
-      if (resolvedSavePath) resolvedSavePath = ensureWithinCwd(resolvedSavePath);
-
+      let resolvedSavePath: string | undefined;
       try {
         // 1. Get file metadata
         const metadataRes = await drive.files.get({
@@ -121,7 +132,115 @@ export function register(server: FastMCP) {
           }
         }
 
-        // 3. Resolve savePath
+        // ---------- Remote mode ----------
+        if (isRemote) {
+          const resolvedFileName =
+            isWorkspace && exportMime
+              ? path.parse(fileName).name + (EXPORT_MIME_TO_EXTENSION[exportMime] || '')
+              : fileName;
+          const outputMime = exportMime || originalMimeType;
+
+          // --- returnAs: "url" (default) -- agent uses curl to save to disk ---
+          if (args.returnAs !== 'content') {
+            const store = requestClients.getStore();
+            if (!store) throw new UserError('Request context missing.');
+
+            const token = createDownloadToken({
+              fileId: args.fileId,
+              accessToken: store.accessToken,
+              exportMime,
+              fileName: resolvedFileName,
+              mimeType: outputMime,
+              isWorkspace,
+            });
+
+            const result: Record<string, unknown> = {
+              downloadUrl: `${process.env.BASE_URL}/download/${token}`,
+              fileName: resolvedFileName,
+              originalMimeType,
+            };
+            if (isWorkspace && exportMime) result.exportedAs = exportMime;
+
+            if (args.extractText !== false && isTextMimeType(outputMime)) {
+              try {
+                const textRes =
+                  isWorkspace && exportMime
+                    ? await drive.files.export(
+                        { fileId: args.fileId, mimeType: exportMime },
+                        { responseType: 'text' }
+                      )
+                    : await drive.files.get(
+                        { fileId: args.fileId, alt: 'media', supportsAllDrives: true },
+                        { responseType: 'text' }
+                      );
+                result.textContent = (textRes.data as string).slice(0, MAX_TEXT_EXTRACT_BYTES);
+              } catch {
+                log.warn?.('Could not extract text content');
+              }
+            }
+
+            return JSON.stringify(result, null, 2);
+          }
+
+          // --- returnAs: "content" -- inline via MCP content types ---
+          let fileBuffer: Buffer;
+          if (isWorkspace && exportMime) {
+            log.info(`Exporting Workspace file as ${exportMime}`);
+            const res = await drive.files.export(
+              { fileId: args.fileId, mimeType: exportMime },
+              { responseType: 'arraybuffer' }
+            );
+            fileBuffer = Buffer.from(res.data as ArrayBuffer);
+          } else {
+            log.info('Downloading blob file into memory');
+            const res = await drive.files.get(
+              { fileId: args.fileId, alt: 'media', supportsAllDrives: true },
+              { responseType: 'arraybuffer' }
+            );
+            fileBuffer = Buffer.from(res.data as ArrayBuffer);
+          }
+
+          const MAX_INLINE_BYTES = 100 * 1024 * 1024;
+          const content: any[] = [];
+
+          if (isTextMimeType(outputMime)) {
+            content.push({
+              type: 'text' as const,
+              text: fileBuffer.toString('utf-8').slice(0, MAX_TEXT_EXTRACT_BYTES),
+            });
+          } else if (outputMime.startsWith('image/') && fileBuffer.length <= MAX_INLINE_BYTES) {
+            content.push(await imageContent({ buffer: fileBuffer }));
+          } else if (fileBuffer.length <= MAX_INLINE_BYTES) {
+            content.push({
+              type: 'resource' as const,
+              resource: {
+                uri: `gdrive:///${args.fileId}/${resolvedFileName}`,
+                blob: fileBuffer.toString('base64'),
+                mimeType: outputMime,
+              },
+            });
+          } else {
+            throw new UserError(
+              `File too large for inline transfer (${(fileBuffer.length / 1024 / 1024).toFixed(1)}MB, limit 100MB).`
+            );
+          }
+
+          content.push({
+            type: 'text' as const,
+            text: JSON.stringify({
+              fileName: resolvedFileName,
+              originalMimeType,
+              sizeBytes: fileBuffer.length,
+            }),
+          });
+
+          return { content };
+        }
+
+        // ---------- Stdio mode: write to local disk ----------
+        resolvedSavePath = args.savePath;
+        if (resolvedSavePath) resolvedSavePath = ensureWithinCwd(resolvedSavePath);
+
         if (!resolvedSavePath) {
           if (isWorkspace && exportMime) {
             const baseName = path.parse(fileName).name;
@@ -133,10 +252,8 @@ export function register(server: FastMCP) {
         }
         resolvedSavePath = ensureWithinCwd(resolvedSavePath);
 
-        // 4. Ensure parent directories exist
         fs.mkdirSync(path.dirname(resolvedSavePath), { recursive: true });
 
-        // 5. Download or export
         let outputMime: string;
         if (isWorkspace && exportMime) {
           log.info(`Exporting Workspace file as ${exportMime}`);
@@ -156,10 +273,8 @@ export function register(server: FastMCP) {
           outputMime = originalMimeType;
         }
 
-        // 6. Get file size
         const sizeBytes = fs.statSync(resolvedSavePath).size;
 
-        // 7. Text extraction
         let textContent: string | undefined;
         if (args.extractText !== false && isTextMimeType(outputMime)) {
           try {
@@ -170,31 +285,24 @@ export function register(server: FastMCP) {
           }
         }
 
-        // 8. Build response
         const result: Record<string, unknown> = {
           savedTo: resolvedSavePath,
           fileName,
           originalMimeType,
           sizeBytes,
         };
-        if (isWorkspace && exportMime) {
-          result.exportedAs = exportMime;
-        }
-        if (textContent !== undefined) {
-          result.textContent = textContent;
-        }
+        if (isWorkspace && exportMime) result.exportedAs = exportMime;
+        if (textContent !== undefined) result.textContent = textContent;
 
         return JSON.stringify(result, null, 2);
       } catch (error: any) {
-        // Clean up partial file on error
-        if (resolvedSavePath) {
+        if (!isRemote && resolvedSavePath) {
           try {
             fs.unlinkSync(resolvedSavePath);
           } catch {
-            // File may not exist yet, ignore
+            /* file may not exist yet */
           }
         }
-
         log.error(`Error downloading file ${args.fileId}: ${error.message || error}`);
         if (error instanceof UserError) throw error;
         if (error.code === 404)
