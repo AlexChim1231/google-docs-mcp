@@ -120,32 +120,39 @@ Tools across Google Docs, Sheets, and Drive:
 
 ### Google Sheets
 
-| Tool                       | Description                                |
-| -------------------------- | ------------------------------------------ |
-| `readSpreadsheet`          | Read data from a range (A1 notation)       |
-| `writeSpreadsheet`         | Write data to a range                      |
-| `batchWrite`               | Write to multiple ranges in one call       |
-| `appendRows`               | Add rows to a sheet                        |
-| `clearRange`               | Clear cell values                          |
-| `createSpreadsheet`        | Create a new spreadsheet                   |
-| `addSheet`                 | Add a sheet/tab                            |
-| `deleteSheet`              | Remove a sheet/tab                         |
-| `duplicateSheet`           | Copy a sheet within or across spreadsheets |
-| `renameSheet`              | Rename a sheet/tab                         |
-| `getSpreadsheetInfo`       | Get metadata and sheet list                |
-| `listSpreadsheets`         | Find spreadsheets                          |
-| `formatCells`              | Bold, colors, alignment on cell ranges     |
-| `copyFormatting`           | Copy formatting from one range to another  |
-| `readCellFormat`           | Read formatting details of a cell range    |
-| `freezeRowsAndColumns`     | Pin header rows/columns                    |
-| `setDropdownValidation`    | Add/remove dropdown lists on cells         |
-| `setColumnWidths`          | Set column widths in pixels                |
-| `autoResizeColumns`        | Auto-fit column widths to content          |
-| `addConditionalFormatting` | Add conditional formatting rules           |
-| `groupRows`                | Group rows for collapsible sections        |
-| `ungroupAllRows`           | Remove all row groupings                   |
-| `insertChart`              | Create a chart from data                   |
-| `deleteChart`              | Remove a chart                             |
+| Tool                          | Description                                                           |
+| ----------------------------- | --------------------------------------------------------------------- |
+| `readSpreadsheet`             | Read data from a range (A1 notation)                                  |
+| `writeSpreadsheet`            | Write data to a range                                                 |
+| `batchWrite`                  | Write to multiple ranges in one call                                  |
+| `appendRows`                  | Add rows to a sheet                                                   |
+| `clearRange`                  | Clear cell values                                                     |
+| `createSpreadsheet`           | Create a new spreadsheet                                              |
+| `addSheet`                    | Add a sheet/tab                                                       |
+| `deleteSheet`                 | Remove a sheet/tab                                                    |
+| `duplicateSheet`              | Duplicate a sheet within the same spreadsheet                         |
+| `copySheetTo`                 | Copy a sheet into another spreadsheet                                 |
+| `renameSheet`                 | Rename a sheet/tab                                                    |
+| `getSpreadsheetInfo`          | Get metadata and sheet list                                           |
+| `listSpreadsheets`            | Find spreadsheets                                                     |
+| `formatCells`                 | Bold, colors, alignment, vertical alignment, wrap strategy on ranges  |
+| `copyFormatting`              | Copy formatting from one range to another                             |
+| `readCellFormat`              | Read formatting details of a cell range                               |
+| `setCellBorders`              | Set per-side borders (top/bottom/left/right/inner) with style & color |
+| `freezeRowsAndColumns`        | Pin header rows/columns                                               |
+| `setDropdownValidation`       | Add/remove dropdown lists on cells                                    |
+| `setColumnWidths`             | Set column widths in pixels                                           |
+| `setRowHeights`               | Set row heights in pixels                                             |
+| `autoResizeColumns`           | Auto-fit column widths to content                                     |
+| `autoResizeRows`              | Auto-fit row heights to content                                       |
+| `protectRange`                | Lock a range or entire sheet (warning-only or fully locked)           |
+| `addConditionalFormatting`    | Add a conditional formatting rule                                     |
+| `getConditionalFormatting`    | List conditional formatting rules with their index (JSON)             |
+| `deleteConditionalFormatting` | Delete conditional formatting rules by index                          |
+| `groupRows`                   | Group rows for collapsible sections                                   |
+| `ungroupAllRows`              | Remove all row groupings                                              |
+| `insertChart`                 | Create a chart from data                                              |
+| `deleteChart`                 | Remove a chart                                                        |
 
 ### Google Sheets Tables
 
@@ -230,6 +237,9 @@ Tools across Google Docs, Sheets, and Drive:
 "Freeze the first row in spreadsheet XYZ789"
 "Add a dropdown with options [Open, In Progress, Done] to range C2:C100"
 "Create a table named 'Tasks' in range A1:D10 with columns: Task (TEXT), Status (DROPDOWN: 'Not Started','In Progress','Done'), Priority (NUMBER)"
+"Add a medium solid border around A1:D10 in spreadsheet XYZ789"
+"Protect the header row so collaborators can't accidentally edit it"
+"Auto-fit row heights for rows 2–50 after wrapping text"
 ```
 
 ### Google Drive

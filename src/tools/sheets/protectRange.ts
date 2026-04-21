@@ -1,5 +1,6 @@
 import type { FastMCP } from 'fastmcp';
 import { UserError } from 'fastmcp';
+import { sheets_v4 } from 'googleapis';
 import { z } from 'zod';
 import { getSheetsClient } from '../../clients.js';
 import * as SheetsHelpers from '../../googleSheetsApiHelpers.js';
@@ -49,16 +50,11 @@ export function register(server: FastMCP) {
           args.sheetName
         );
 
-        const protectedRange: any = {
+        const protectedRange: sheets_v4.Schema$ProtectedRange = {
           description: args.description ?? '',
           warningOnly: args.warningOnly ?? false,
+          range: args.range ? SheetsHelpers.parseA1ToGridRange(args.range, sheetId) : { sheetId },
         };
-
-        if (args.range) {
-          protectedRange.range = SheetsHelpers.parseA1ToGridRange(args.range, sheetId);
-        } else {
-          protectedRange.sheetId = sheetId;
-        }
 
         const response = await sheets.spreadsheets.batchUpdate({
           spreadsheetId: args.spreadsheetId,

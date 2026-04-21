@@ -26,7 +26,7 @@ export function register(server: FastMCP) {
   server.addTool({
     name: 'getConditionalFormatting',
     description:
-      'Lists all conditional formatting rules for a sheet, including their index (needed for deleteConditionalFormatting), condition, ranges, and applied formats.',
+      'Lists all conditional formatting rules for a sheet as JSON. Each rule includes its index (needed for deleteConditionalFormatting), kind (BOOLEAN or GRADIENT), ranges, condition type/values, and applied formats (colors, bold, italic).',
     parameters: z.object({
       spreadsheetId: z
         .string()
@@ -57,12 +57,11 @@ export function register(server: FastMCP) {
         const sheet = response.data.sheets?.find((s) => s.properties?.sheetId === sheetId);
         const rules = sheet?.conditionalFormats ?? [];
 
-        if (rules.length === 0) {
-          return 'No conditional formatting rules found on this sheet.';
-        }
+        const sheetTitle = sheet?.properties?.title ?? null;
 
-        const summary = rules.map((rule, idx) => {
-          const condition = rule.booleanRule?.condition ?? rule.gradientRule;
+        const ruleSummaries = rules.map((rule, idx) => {
+          const condition = rule.booleanRule?.condition;
+          const gradient = rule.gradientRule;
           const fmt = rule.booleanRule?.format ?? {};
 
           const ranges = (rule.ranges ?? []).map((r) => {
@@ -74,32 +73,44 @@ export function register(server: FastMCP) {
             return `${startCol}${startRow}:${endCol}${endRow}`;
           });
 
-          const condType = (condition as any)?.type ?? 'GRADIENT';
-          const condValues = ((condition as any)?.values ?? [])
-            .map((v: any) => v.userEnteredValue)
-            .join(', ');
+          const kind = gradient ? 'GRADIENT' : 'BOOLEAN';
+          const conditionType = condition?.type ?? (gradient ? 'GRADIENT' : null);
+          const conditionValues = (condition?.values ?? [])
+            .map((v) => v.userEnteredValue)
+            .filter((v): v is string => typeof v === 'string');
+
           const bg = fmt.backgroundColor;
-          const bgColor = bg
+          const backgroundColor = bg
             ? rgbToHex({ red: bg.red ?? 0, green: bg.green ?? 0, blue: bg.blue ?? 0 })
             : null;
           const fg = fmt.textFormat?.foregroundColor;
-          const fgColor = fg
+          const textColor = fg
             ? rgbToHex({ red: fg.red ?? 0, green: fg.green ?? 0, blue: fg.blue ?? 0 })
             : null;
 
-          return [
-            `[Rule ${idx}]`,
-            `  Ranges: ${ranges.join(', ')}`,
-            `  Condition: ${condType}${condValues ? ` = ${condValues}` : ''}`,
-            bgColor ? `  Background: ${bgColor}` : null,
-            fgColor ? `  Text color: ${fgColor}` : null,
-            fmt.textFormat?.bold ? '  Bold: true' : null,
-          ]
-            .filter(Boolean)
-            .join('\n');
+          return {
+            index: idx,
+            kind,
+            ranges,
+            conditionType,
+            conditionValues,
+            backgroundColor,
+            textColor,
+            bold: fmt.textFormat?.bold ?? false,
+            italic: fmt.textFormat?.italic ?? false,
+          };
         });
 
-        return `Found ${rules.length} conditional formatting rule(s):\n\n${summary.join('\n\n')}`;
+        return JSON.stringify(
+          {
+            spreadsheetId: args.spreadsheetId,
+            sheetName: sheetTitle,
+            count: ruleSummaries.length,
+            rules: ruleSummaries,
+          },
+          null,
+          2
+        );
       } catch (error: any) {
         log.error(`Error getting conditional formatting: ${error.message || error}`);
         if (error instanceof UserError) throw error;
