@@ -26,11 +26,13 @@ docs/
 
 ## Structure
 
-| Tool              | Description                                    |
-| ----------------- | ---------------------------------------------- |
-| `insertTable`     | Inserts an empty table at a character index    |
-| `insertPageBreak` | Inserts a page break at a character index      |
-| `insertImage`     | Inserts an image from a URL or local file path |
+| Tool                 | Description                                                                             |
+| -------------------- | --------------------------------------------------------------------------------------- |
+| `insertTable`        | Inserts an empty table at a character index                                             |
+| `insertPageBreak`    | Inserts a page break at a character index                                               |
+| `insertSectionBreak` | Inserts a section break (NEXT_PAGE or CONTINUOUS) — required before changing page style |
+| `updateSectionStyle` | Updates section style: flip page orientation (landscape), margins, page numbering, etc. |
+| `insertImage`        | Inserts an image from a URL or local file path                                          |
 
 ## [Formatting](./formatting/)
 

@@ -105,6 +105,8 @@ Tools across Google Docs, Sheets, and Drive:
 | `insertTable`                 | Create an empty table                             |
 | `insertTableWithData`         | Create a table pre-filled with data               |
 | `insertPageBreak`             | Insert page breaks                                |
+| `insertSectionBreak`          | Insert section break (NEXT_PAGE or CONTINUOUS)    |
+| `updateSectionStyle`          | Update section style: flip orientation, margins   |
 | `insertImage`                 | Insert images from URLs or local files            |
 
 ### Comments

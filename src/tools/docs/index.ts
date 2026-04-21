@@ -15,6 +15,8 @@ import { register as findAndReplace } from './findAndReplace.js';
 import { register as insertTable } from './insertTable.js';
 import { register as insertTableWithData } from './insertTableWithData.js';
 import { register as insertPageBreak } from './insertPageBreak.js';
+import { register as insertSectionBreak } from './insertSectionBreak.js';
+import { register as updateSectionStyle } from './updateSectionStyle.js';
 import { register as insertImage } from './insertImage.js';
 
 // Sub-domains
@@ -37,6 +39,8 @@ export function registerDocsTools(server: FastMCP) {
   insertTable(server);
   insertTableWithData(server);
   insertPageBreak(server);
+  insertSectionBreak(server);
+  updateSectionStyle(server);
   insertImage(server);
 
   // Sub-domains
