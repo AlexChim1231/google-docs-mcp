@@ -14,9 +14,7 @@ export function register(server: FastMCP) {
         .number()
         .int()
         .describe('The numeric sheet ID to copy. Use getSpreadsheetInfo to find sheet IDs.'),
-      destinationSpreadsheetId: z
-        .string()
-        .describe('The spreadsheet ID of the destination file.'),
+      destinationSpreadsheetId: z.string().describe('The spreadsheet ID of the destination file.'),
     }),
     execute: async (args, { log }) => {
       const sheets = await getSheetsClient();

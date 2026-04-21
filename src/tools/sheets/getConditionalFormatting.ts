@@ -68,8 +68,7 @@ export function register(server: FastMCP) {
           const ranges = (rule.ranges ?? []).map((r) => {
             const startCol =
               r.startColumnIndex != null ? colIndexToLetters(r.startColumnIndex) : '';
-            const endCol =
-              r.endColumnIndex != null ? colIndexToLetters(r.endColumnIndex - 1) : '';
+            const endCol = r.endColumnIndex != null ? colIndexToLetters(r.endColumnIndex - 1) : '';
             const startRow = r.startRowIndex != null ? r.startRowIndex + 1 : '';
             const endRow = r.endRowIndex != null ? r.endRowIndex : '';
             return `${startCol}${startRow}:${endCol}${endRow}`;
@@ -80,9 +79,13 @@ export function register(server: FastMCP) {
             .map((v: any) => v.userEnteredValue)
             .join(', ');
           const bg = fmt.backgroundColor;
-          const bgColor = bg ? rgbToHex({ red: bg.red ?? 0, green: bg.green ?? 0, blue: bg.blue ?? 0 }) : null;
+          const bgColor = bg
+            ? rgbToHex({ red: bg.red ?? 0, green: bg.green ?? 0, blue: bg.blue ?? 0 })
+            : null;
           const fg = fmt.textFormat?.foregroundColor;
-          const fgColor = fg ? rgbToHex({ red: fg.red ?? 0, green: fg.green ?? 0, blue: fg.blue ?? 0 }) : null;
+          const fgColor = fg
+            ? rgbToHex({ red: fg.red ?? 0, green: fg.green ?? 0, blue: fg.blue ?? 0 })
+            : null;
 
           return [
             `[Rule ${idx}]`,

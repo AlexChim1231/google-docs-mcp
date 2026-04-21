@@ -20,16 +20,8 @@ export function register(server: FastMCP) {
           .string()
           .optional()
           .describe('Name of the sheet/tab. Defaults to the first sheet if not provided.'),
-        startRow: z
-          .number()
-          .int()
-          .min(1)
-          .describe('1-based start row index (inclusive).'),
-        endRow: z
-          .number()
-          .int()
-          .min(1)
-          .describe('1-based end row index (inclusive).'),
+        startRow: z.number().int().min(1).describe('1-based start row index (inclusive).'),
+        endRow: z.number().int().min(1).describe('1-based end row index (inclusive).'),
         pixelSize: z
           .number()
           .int()

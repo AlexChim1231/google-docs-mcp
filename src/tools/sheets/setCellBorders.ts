@@ -36,9 +36,7 @@ export function register(server: FastMCP) {
           .describe(
             'The spreadsheet ID — the long string between /d/ and /edit in a Google Sheets URL.'
           ),
-        range: z
-          .string()
-          .describe('A1 notation range (e.g., "Sheet1!A1:D10", "1:1", "A:A").'),
+        range: z.string().describe('A1 notation range (e.g., "Sheet1!A1:D10", "1:1", "A:A").'),
         top: borderSchema.describe('Top border of the range.'),
         bottom: borderSchema.describe('Bottom border of the range.'),
         left: borderSchema.describe('Left border of the range.'),

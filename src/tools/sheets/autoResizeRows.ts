@@ -33,10 +33,9 @@ export function register(server: FastMCP) {
           .optional()
           .describe('1-based end row index (inclusive). Omit to resize to the last row.'),
       })
-      .refine(
-        (d) => d.startRow === undefined || d.endRow === undefined || d.endRow >= d.startRow,
-        { message: 'endRow must be greater than or equal to startRow.' }
-      ),
+      .refine((d) => d.startRow === undefined || d.endRow === undefined || d.endRow >= d.startRow, {
+        message: 'endRow must be greater than or equal to startRow.',
+      }),
     execute: async (args, { log }) => {
       const sheets = await getSheetsClient();
       log.info(`Auto-resizing rows in spreadsheet ${args.spreadsheetId}`);
@@ -60,7 +59,9 @@ export function register(server: FastMCP) {
         });
 
         const rangeDesc =
-          args.startRow !== undefined ? `rows ${args.startRow}–${args.endRow ?? 'end'}` : 'all rows';
+          args.startRow !== undefined
+            ? `rows ${args.startRow}–${args.endRow ?? 'end'}`
+            : 'all rows';
         return `Successfully auto-resized ${rangeDesc} to fit content.`;
       } catch (error: any) {
         log.error(`Error auto-resizing rows: ${error.message || error}`);
