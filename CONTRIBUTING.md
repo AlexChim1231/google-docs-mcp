@@ -84,12 +84,14 @@ Tools live in `src/tools/`, organized by domain. Each tool is a single file expo
 ```
 src/tools/
 ├── index.ts            Top-level router
-├── docs/               Google Docs tools (14)
+├── docs/               Google Docs tools (13)
 │   ├── comments/       Comment management (6)
 │   └── formatting/     Text and paragraph styling (2)
-├── drive/              Google Drive tools (12)
-├── sheets/             Google Sheets tools (11)
-└── utils/              Cross-cutting utilities (2)
+├── drive/              Google Drive tools (15)
+├── sheets/             Google Sheets tools (37)
+├── gmail/              Gmail tools (13)
+├── calendar/           Google Calendar tools (5)
+└── utils/              Cross-cutting utilities (3)
 ```
 
 ### Helpers

@@ -11,6 +11,7 @@ import { register as listGoogleSheets } from './listGoogleSheets.js';
 import { register as deleteSheet } from './deleteSheet.js';
 import { register as renameSheet } from './renameSheet.js';
 import { register as duplicateSheet } from './duplicateSheet.js';
+import { register as copySheetTo } from './copySheetTo.js';
 
 // Formatting & validation
 import { register as formatCells } from './formatCells.js';
@@ -19,6 +20,12 @@ import { register as copyFormatting } from './copyFormatting.js';
 import { register as freezeRowsAndColumns } from './freezeRowsAndColumns.js';
 import { register as setColumnWidths } from './setColumnWidths.js';
 import { register as autoResizeColumns } from './autoResizeColumns.js';
+import { register as autoResizeRows } from './autoResizeRows.js';
+import { register as setRowHeights } from './setRowHeights.js';
+import { register as setCellBorders } from './setCellBorders.js';
+import { register as protectRange } from './protectRange.js';
+import { register as getConditionalFormatting } from './getConditionalFormatting.js';
+import { register as deleteConditionalFormatting } from './deleteConditionalFormatting.js';
 import { register as setDropdownValidation } from './setDropdownValidation.js';
 import { register as addConditionalFormatting } from './addConditionalFormatting.js';
 import { register as groupRows } from './groupRows.js';
@@ -47,6 +54,7 @@ export function registerSheetsTools(server: FastMCP) {
   deleteSheet(server);
   renameSheet(server);
   duplicateSheet(server);
+  copySheetTo(server);
 
   // Formatting & validation
   formatCells(server);
@@ -55,6 +63,12 @@ export function registerSheetsTools(server: FastMCP) {
   freezeRowsAndColumns(server);
   setColumnWidths(server);
   autoResizeColumns(server);
+  autoResizeRows(server);
+  setRowHeights(server);
+  setCellBorders(server);
+  protectRange(server);
+  getConditionalFormatting(server);
+  deleteConditionalFormatting(server);
   setDropdownValidation(server);
   addConditionalFormatting(server);
   groupRows(server);

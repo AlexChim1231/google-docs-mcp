@@ -33,6 +33,16 @@ export function register(server: FastMCP) {
           .enum(['LEFT', 'CENTER', 'RIGHT'])
           .optional()
           .describe('Horizontal text alignment.'),
+        verticalAlignment: z
+          .enum(['TOP', 'MIDDLE', 'BOTTOM'])
+          .optional()
+          .describe('Vertical text alignment within the cell.'),
+        wrapStrategy: z
+          .enum(['OVERFLOW_CELL', 'CLIP', 'WRAP'])
+          .optional()
+          .describe(
+            'Text wrap strategy: WRAP wraps to multiple lines, CLIP truncates, OVERFLOW_CELL overflows into adjacent cells.'
+          ),
         numberFormat: z
           .object({
             type: z
@@ -69,6 +79,8 @@ export function register(server: FastMCP) {
           data.foregroundColor !== undefined ||
           data.backgroundColor !== undefined ||
           data.horizontalAlignment !== undefined ||
+          data.verticalAlignment !== undefined ||
+          data.wrapStrategy !== undefined ||
           data.numberFormat !== undefined,
         { message: 'At least one formatting option must be provided.' }
       ),
@@ -106,6 +118,14 @@ export function register(server: FastMCP) {
 
         if (args.horizontalAlignment) {
           format.horizontalAlignment = args.horizontalAlignment;
+        }
+
+        if (args.verticalAlignment) {
+          format.verticalAlignment = args.verticalAlignment;
+        }
+
+        if (args.wrapStrategy) {
+          (format as any).wrapStrategy = args.wrapStrategy;
         }
 
         if (args.numberFormat) {
