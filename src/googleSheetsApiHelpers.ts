@@ -389,6 +389,7 @@ export async function formatCells(
     };
     horizontalAlignment?: 'LEFT' | 'CENTER' | 'RIGHT';
     verticalAlignment?: 'TOP' | 'MIDDLE' | 'BOTTOM';
+    wrapStrategy?: 'OVERFLOW_CELL' | 'CLIP' | 'WRAP';
     numberFormat?: { type: string; pattern?: string };
   }
 ): Promise<sheets_v4.Schema$BatchUpdateSpreadsheetResponse> {
@@ -441,6 +442,10 @@ export async function formatCells(
       userEnteredFormat.verticalAlignment = format.verticalAlignment;
     }
 
+    if (format.wrapStrategy) {
+      userEnteredFormat.wrapStrategy = format.wrapStrategy;
+    }
+
     if (format.numberFormat) {
       userEnteredFormat.numberFormat = {
         type: format.numberFormat.type,
@@ -453,6 +458,7 @@ export async function formatCells(
       'textFormat',
       'horizontalAlignment',
       'verticalAlignment',
+      'wrapStrategy',
       ...(format.numberFormat ? ['numberFormat'] : []),
     ].join(',');
 
