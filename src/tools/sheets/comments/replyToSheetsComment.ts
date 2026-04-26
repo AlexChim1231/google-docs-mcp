@@ -12,7 +12,9 @@ export function register(server: FastMCP) {
     parameters: z.object({
       spreadsheetId: z
         .string()
-        .describe('The spreadsheet ID — the long string between /d/ and /edit in a Google Sheets URL.'),
+        .describe(
+          'The spreadsheet ID — the long string between /d/ and /edit in a Google Sheets URL.'
+        ),
       commentId: z.string().describe('The ID of the comment to reply to.'),
       content: z.string().min(1).describe('The text content of the reply.'),
     }),

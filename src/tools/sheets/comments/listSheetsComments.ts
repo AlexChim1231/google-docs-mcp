@@ -12,7 +12,9 @@ export function register(server: FastMCP) {
     parameters: z.object({
       spreadsheetId: z
         .string()
-        .describe('The spreadsheet ID — the long string between /d/ and /edit in a Google Sheets URL.'),
+        .describe(
+          'The spreadsheet ID — the long string between /d/ and /edit in a Google Sheets URL.'
+        ),
       sheetName: z
         .string()
         .optional()
@@ -22,19 +24,27 @@ export function register(server: FastMCP) {
         .int()
         .min(1)
         .optional()
-        .describe('Optional: filter to comments on this specific row number (1-based, e.g., 5 for row 5).'),
+        .describe(
+          'Optional: filter to comments on this specific row number (1-based, e.g., 5 for row 5).'
+        ),
       rows: z
         .array(z.number().int().min(1))
         .optional()
-        .describe('Optional: filter to comments on any of these row numbers (1-based, e.g., [3, 5, 12]). Ignored if "row" is set.'),
+        .describe(
+          'Optional: filter to comments on any of these row numbers (1-based, e.g., [3, 5, 12]). Ignored if "row" is set.'
+        ),
       cell: z
         .string()
         .optional()
-        .describe('Optional: filter to comments on this specific cell in A1 notation (e.g., "B3"). Overrides row/rows filters.'),
+        .describe(
+          'Optional: filter to comments on this specific cell in A1 notation (e.g., "B3"). Overrides row/rows filters.'
+        ),
       range: z
         .string()
         .optional()
-        .describe('Optional: filter to comments within this A1 range (e.g., "A1:D10", "B:B" for entire column B). Overrides row/rows/cell filters.'),
+        .describe(
+          'Optional: filter to comments within this A1 range (e.g., "A1:D10", "B:B" for entire column B). Overrides row/rows/cell filters.'
+        ),
       includeResolved: z
         .boolean()
         .optional()
@@ -54,7 +64,8 @@ export function register(server: FastMCP) {
         do {
           const response = await drive.comments.list({
             fileId: args.spreadsheetId,
-            fields: 'comments(id,content,anchor,quotedFileContent,author,createdTime,modifiedTime,resolved,replies(id,content,author,createdTime)),nextPageToken',
+            fields:
+              'comments(id,content,anchor,quotedFileContent,author,createdTime,modifiedTime,resolved,replies(id,content,author,createdTime)),nextPageToken',
             pageSize: 100,
             ...(pageToken ? { pageToken } : {}),
           });
@@ -101,10 +112,12 @@ export function register(server: FastMCP) {
             if (!cellInfo) return !rangeFilter && !cellFilter && !rowSet;
 
             if (rangeFilter) {
-              return cellInfo.row >= rangeFilter.startRow &&
+              return (
+                cellInfo.row >= rangeFilter.startRow &&
                 cellInfo.row <= rangeFilter.endRow &&
                 cellInfo.col >= rangeFilter.startCol &&
-                cellInfo.col <= rangeFilter.endCol;
+                cellInfo.col <= rangeFilter.endCol
+              );
             }
             if (cellFilter) {
               return cellInfo.row === cellFilter.row && cellInfo.col === cellFilter.col;
@@ -143,13 +156,17 @@ export function register(server: FastMCP) {
         return JSON.stringify({ comments: result, total: result.length }, null, 2);
       } catch (error: any) {
         log.error(`Error listing sheets comments: ${error.message || error}`);
-        throw new UserError(`Failed to list spreadsheet comments: ${error.message || 'Unknown error'}`);
+        throw new UserError(
+          `Failed to list spreadsheet comments: ${error.message || 'Unknown error'}`
+        );
       }
     },
   });
 }
 
-function parseSheetsAnchor(anchorStr: string): { sheetId: number; row: number; col: number } | null {
+function parseSheetsAnchor(
+  anchorStr: string
+): { sheetId: number; row: number; col: number } | null {
   try {
     const anchor = JSON.parse(anchorStr);
     const actions = anchor.a;
@@ -190,7 +207,12 @@ function a1ToRowCol(a1: string): { row: number; col: number } {
   return { row: parseInt(match[2], 10) - 1, col: col - 1 };
 }
 
-function parseA1Range(range: string): { startRow: number; endRow: number; startCol: number; endCol: number } {
+function parseA1Range(range: string): {
+  startRow: number;
+  endRow: number;
+  startCol: number;
+  endCol: number;
+} {
   const stripped = range.includes('!') ? range.split('!')[1] : range;
   const parts = stripped.split(':');
 

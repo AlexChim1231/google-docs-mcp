@@ -12,7 +12,9 @@ export function register(server: FastMCP) {
     parameters: z.object({
       spreadsheetId: z
         .string()
-        .describe('The spreadsheet ID — the long string between /d/ and /edit in a Google Sheets URL.'),
+        .describe(
+          'The spreadsheet ID — the long string between /d/ and /edit in a Google Sheets URL.'
+        ),
       commentId: z.string().describe('The ID of the comment to retrieve.'),
     }),
     execute: async (args, { log }) => {
@@ -59,7 +61,9 @@ export function register(server: FastMCP) {
   });
 }
 
-function parseSheetsAnchor(anchorStr: string): { sheetId: number; row: number; col: number } | null {
+function parseSheetsAnchor(
+  anchorStr: string
+): { sheetId: number; row: number; col: number } | null {
   try {
     const anchor = JSON.parse(anchorStr);
     const actions = anchor.a;
