@@ -31,6 +31,9 @@ import { register as addConditionalFormatting } from './addConditionalFormatting
 import { register as groupRows } from './groupRows.js';
 import { register as ungroupAllRows } from './ungroupAllRows.js';
 
+// Comments
+import { registerSheetsCommentTools } from './comments/index.js';
+
 // Tables
 import { register as createTable } from './createTable.js';
 import { register as listTables } from './listTables.js';
@@ -73,6 +76,9 @@ export function registerSheetsTools(server: FastMCP) {
   addConditionalFormatting(server);
   groupRows(server);
   ungroupAllRows(server);
+
+  // Comments
+  registerSheetsCommentTools(server);
 
   // Tables
   createTable(server);
