@@ -86,7 +86,7 @@ if (process.env.MCP_TRANSPORT !== 'httpStream') {
   const watchdog = setInterval(() => {
     if (process.ppid !== initialPpid && process.ppid === 1) {
       logger.info(
-        `Parent process (was PID ${initialPpid}) exited; reparented to init. Shutting down.`,
+        `Parent process (was PID ${initialPpid}) exited; reparented to init. Shutting down.`
       );
       process.exit(0);
     }
