@@ -63,6 +63,37 @@ process.stdin.on('error', () => {
   process.exit(0);
 });
 
+// Graceful shutdown on termination signals.
+// Without these handlers, a host that sends SIGTERM (rather than closing
+// stdin) leaves the server running and accumulating in the background.
+const cleanShutdown = (signal: string) => {
+  logger.info(`Received ${signal} — shutting down.`);
+  process.exit(0);
+};
+process.on('SIGTERM', () => cleanShutdown('SIGTERM'));
+process.on('SIGINT', () => cleanShutdown('SIGINT'));
+process.on('SIGHUP', () => cleanShutdown('SIGHUP'));
+
+// Orphan-process watchdog (stdio mode only).
+// In practice, some MCP clients exit without sending SIGTERM, and the
+// stdin 'end' event can be swallowed by the transport's internal read
+// loop — leaving the server running as a zombie that consumes CPU and
+// memory indefinitely. As a backstop, detect reparenting to init
+// (PID 1) and exit. The check runs every 10 s and is unref()'d so it
+// does not keep the event loop alive on its own.
+if (process.env.MCP_TRANSPORT !== 'httpStream') {
+  const initialPpid = process.ppid;
+  const watchdog = setInterval(() => {
+    if (process.ppid !== initialPpid && process.ppid === 1) {
+      logger.info(
+        `Parent process (was PID ${initialPpid}) exited; reparented to init. Shutting down.`,
+      );
+      process.exit(0);
+    }
+  }, 10_000);
+  watchdog.unref();
+}
+
 const isRemote = process.env.MCP_TRANSPORT === 'httpStream';
 
 if (isRemote) {
