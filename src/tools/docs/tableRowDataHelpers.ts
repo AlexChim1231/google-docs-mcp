@@ -49,6 +49,30 @@ export function buildReplaceTableCellContentRequests(
   return requests;
 }
 
+export function buildReplaceTableRowRequests(
+  table: ExtractedTable,
+  rowIndex: number,
+  values: string[],
+  tabId?: string
+): docs_v1.Schema$Request[] {
+  if (rowIndex < 0 || rowIndex >= table.rowCount) {
+    throw new UserError(
+      `Row index ${rowIndex} is out of bounds for table ${table.tableId} with ${table.rowCount} rows.`
+    );
+  }
+
+  if (values.length > table.columnCount) {
+    throw new UserError(
+      `Received ${values.length} values for table ${table.tableId}, but the table only has ${table.columnCount} columns.`
+    );
+  }
+
+  return table.cells
+    .filter((cell) => cell.rowIndex === rowIndex)
+    .sort((a, b) => b.columnIndex - a.columnIndex)
+    .flatMap((cell) => buildReplaceTableCellContentRequests(cell, values[cell.columnIndex] ?? '', tabId));
+}
+
 export async function replaceTableRowData(
   docs: Docs,
   documentId: string,
@@ -57,26 +81,7 @@ export async function replaceTableRowData(
   values: string[],
   tabId?: string
 ): Promise<void> {
-  if (rowIndex < 0 || rowIndex >= table.rowCount) {
-    throw new UserError(
-      `Row index ${rowIndex} is out of bounds for table ${table.tableId} with ${table.rowCount} rows.`
-    );
-  }
-
-  const rowCells = table.cells
-    .filter((cell) => cell.rowIndex === rowIndex)
-    .sort((a, b) => b.columnIndex - a.columnIndex);
-
-  if (values.length > table.columnCount) {
-    throw new UserError(
-      `Received ${values.length} values for table ${table.tableId}, but the table only has ${table.columnCount} columns.`
-    );
-  }
-
-  for (const cell of rowCells) {
-    const nextValue = values[cell.columnIndex] ?? '';
-    const requests = buildReplaceTableCellContentRequests(cell, nextValue, tabId);
-    if (requests.length === 0) continue;
-    await GDocsHelpers.executeBatchUpdate(docs, documentId, requests);
-  }
+  const requests = buildReplaceTableRowRequests(table, rowIndex, values, tabId);
+  if (requests.length === 0) return;
+  await GDocsHelpers.executeBatchUpdate(docs, documentId, requests);
 }

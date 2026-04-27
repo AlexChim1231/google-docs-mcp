@@ -36,57 +36,58 @@ export function register(server: FastMCP) {
       );
 
       try {
-        for (const [offset, rowValues] of args.rows.entries()) {
-          const res = await docs.documents.get({
-            documentId: args.documentId,
-            includeTabsContent: true,
-            fields:
-              'body(content(startIndex,endIndex,table(tableRows(tableCells(startIndex,endIndex,content(startIndex,endIndex,paragraph(elements(startIndex,endIndex,textRun(content))))))))),tabs(tabProperties(tabId,title),documentTab(body(content(startIndex,endIndex,table(tableRows(tableCells(startIndex,endIndex,content(startIndex,endIndex,paragraph(elements(startIndex,endIndex,textRun(content)))))))))))',
-          });
+        const res = await docs.documents.get({
+          documentId: args.documentId,
+          includeTabsContent: true,
+          fields:
+            'body(content(startIndex,endIndex,table(tableRows(tableCells(startIndex,endIndex,content(startIndex,endIndex,paragraph(elements(startIndex,endIndex,textRun(content))))))))),tabs(tabProperties(tabId,title),documentTab(body(content(startIndex,endIndex,table(tableRows(tableCells(startIndex,endIndex,content(startIndex,endIndex,paragraph(elements(startIndex,endIndex,textRun(content)))))))))))',
+        });
 
-          const table = getTableById(res.data, args.tableId, args.tabId);
-          if (!table) {
-            throw new UserError(`Table "${args.tableId}" not found in document.`);
-          }
-          if (table.startIndex == null) {
-            throw new UserError(
-              `Table "${args.tableId}" does not expose a valid table start index.`
-            );
-          }
+        const table = getTableById(res.data, args.tableId, args.tabId);
+        if (!table) {
+          throw new UserError(`Table "${args.tableId}" not found in document.`);
+        }
+        if (table.startIndex == null) {
+          throw new UserError(`Table "${args.tableId}" does not expose a valid table start index.`);
+        }
+
+        for (const [offset, rowValues] of args.rows.entries()) {
           if (rowValues.length > table.columnCount) {
             throw new UserError(
               `Row ${offset} has ${rowValues.length} values, but table ${args.tableId} only has ${table.columnCount} columns.`
             );
           }
+        }
 
-          await GDocsHelpers.executeBatchUpdate(docs, args.documentId, [
-            GDocsHelpers.buildInsertTableRowRequest(
-              table.startIndex,
-              table.rowCount - 1,
-              true,
-              args.tabId
-            ),
-          ]);
+        const insertRequests = args.rows.map(() =>
+          GDocsHelpers.buildInsertTableRowRequest(table.startIndex!, table.rowCount - 1, true, args.tabId)
+        );
+        await GDocsHelpers.executeBatchUpdateWithSplitting(
+          docs,
+          args.documentId,
+          insertRequests,
+          log
+        );
 
-          const refreshed = await docs.documents.get({
-            documentId: args.documentId,
-            includeTabsContent: true,
-            fields:
-              'body(content(startIndex,endIndex,table(tableRows(tableCells(startIndex,endIndex,content(startIndex,endIndex,paragraph(elements(startIndex,endIndex,textRun(content))))))))),tabs(tabProperties(tabId,title),documentTab(body(content(startIndex,endIndex,table(tableRows(tableCells(startIndex,endIndex,content(startIndex,endIndex,paragraph(elements(startIndex,endIndex,textRun(content)))))))))))',
-          });
+        const refreshed = await docs.documents.get({
+          documentId: args.documentId,
+          includeTabsContent: true,
+          fields:
+            'body(content(startIndex,endIndex,table(tableRows(tableCells(startIndex,endIndex,content(startIndex,endIndex,paragraph(elements(startIndex,endIndex,textRun(content))))))))),tabs(tabProperties(tabId,title),documentTab(body(content(startIndex,endIndex,table(tableRows(tableCells(startIndex,endIndex,content(startIndex,endIndex,paragraph(elements(startIndex,endIndex,textRun(content)))))))))))',
+        });
 
-          const updatedTable = getTableById(refreshed.data, args.tableId, args.tabId);
-          if (!updatedTable) {
-            throw new UserError(
-              `Table "${args.tableId}" could not be found after appending a row.`
-            );
-          }
+        const updatedTable = getTableById(refreshed.data, args.tableId, args.tabId);
+        if (!updatedTable) {
+          throw new UserError(`Table "${args.tableId}" could not be found after appending rows.`);
+        }
 
+        const firstAppendedRowIndex = table.rowCount;
+        for (const [offset, rowValues] of args.rows.entries()) {
           await replaceTableRowDataInternal(
             docs,
             args.documentId,
             updatedTable,
-            updatedTable.rowCount - 1,
+            firstAppendedRowIndex + offset,
             rowValues,
             args.tabId
           );

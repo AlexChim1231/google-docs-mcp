@@ -7,9 +7,8 @@ import { DocumentIdParameter } from '../../types.js';
 import * as GDocsHelpers from '../../googleDocsApiHelpers.js';
 import { buildInsertTableWithDataRequests } from './insertTableWithData.js';
 import {
+  extractDocumentTables,
   extractTableSnapshot,
-  findTableNearestStartIndex,
-  getTableById,
 } from './structureHelpers.js';
 
 const CloneTableParameters = DocumentIdParameter.extend({
@@ -120,12 +119,18 @@ export function register(server: FastMCP) {
             'body(content(startIndex,endIndex,table(rows,columns,tableRows(tableCells(startIndex,endIndex,content(paragraph(elements(startIndex,endIndex,textRun(content))))))))),tabs(tabProperties(tabId,title),documentTab(body(content(startIndex,endIndex,table(rows,columns,tableRows(tableCells(startIndex,endIndex,content(paragraph(elements(startIndex,endIndex,textRun(content)))))))))))',
         });
 
-        const targetTable =
-          findTableNearestStartIndex(targetRes.data, args.index, args.targetTabId) ??
-          getTableById(targetRes.data, args.sourceTableId, args.targetTabId);
+        const targetTable = extractDocumentTables(targetRes.data, args.targetTabId)
+          .filter(
+            (table) =>
+              table.startIndex != null &&
+              table.startIndex >= args.index &&
+              table.rowCount === snapshot.rowCount &&
+              table.columnCount === snapshot.columnCount
+          )
+          .sort((a, b) => (a.startIndex ?? Number.MAX_SAFE_INTEGER) - (b.startIndex ?? Number.MAX_SAFE_INTEGER))[0];
         if (!targetTable || targetTable.startIndex == null) {
           throw new UserError(
-            'Cloned target table was inserted, but could not be re-located for style copying.'
+            'Cloned target table was inserted, but could not be re-located safely for style copying.'
           );
         }
 
