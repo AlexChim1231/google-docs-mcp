@@ -26,20 +26,35 @@ docs/
 
 ## Structure
 
-| Tool                 | Description                                                                             |
-| -------------------- | --------------------------------------------------------------------------------------- |
-| `insertTable`        | Inserts an empty table at a character index                                             |
-| `insertPageBreak`    | Inserts a page break at a character index                                               |
-| `insertSectionBreak` | Inserts a section break (NEXT_PAGE or CONTINUOUS) — required before changing page style |
-| `updateSectionStyle` | Updates section style: flip page orientation (landscape), margins, page numbering, etc. |
-| `insertImage`        | Inserts an image from a URL or local file path                                          |
+| Tool                    | Description                                                                                                  |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `insertTable`           | Inserts an empty table at a character index                                                                  |
+| `insertDateChip`        | Inserts a real Google Docs date smart chip at a character index                                              |
+| `insertPerson`          | Inserts a Google Docs person smart chip using an email address                                               |
+| `insertRichLink`        | Inserts a Google Docs rich-link smart chip for a Google resource                                             |
+| `listSmartChips`        | Lists date, person, and rich-link smart chips found in the document                                          |
+| `cloneTable`            | Clones a source table into a target document while preserving widths and table-level styling where supported |
+| `listDocumentTables`    | Lists tables in a document with MCP table IDs                                                                |
+| `getTableStructure`     | Returns row/column/cell structure for a table                                                                |
+| `findSectionsByHeading` | Finds heading sections and the table that follows them                                                       |
+| `replaceTableRowData`   | Replaces the contents of an existing table row                                                               |
+| `appendTableRows`       | Appends rows to an existing table without replacing the whole document                                       |
+| `deleteTableRows`       | Deletes one or more rows from an existing table                                                              |
+| `insertPageBreak`       | Inserts a page break at a character index                                                                    |
+| `insertSectionBreak`    | Inserts a section break (NEXT_PAGE or CONTINUOUS) — required before changing page style                      |
+| `updateSectionStyle`    | Updates section style: flip page orientation (landscape), margins, page numbering, etc.                      |
+| `insertImage`           | Inserts an image from a URL or local file path                                                               |
 
 ## [Formatting](./formatting/)
 
-| Tool                  | Description                                                                           |
-| --------------------- | ------------------------------------------------------------------------------------- |
-| `applyTextStyle`      | Applies character-level formatting (bold, color, font, etc.) to a range or found text |
-| `applyParagraphStyle` | Applies paragraph-level formatting (alignment, spacing, heading styles)               |
+| Tool                     | Description                                                                           |
+| ------------------------ | ------------------------------------------------------------------------------------- |
+| `applyTextStyle`         | Applies character-level formatting (bold, color, font, etc.) to a range or found text |
+| `applyParagraphStyle`    | Applies paragraph-level formatting (alignment, spacing, heading styles)               |
+| `updateTableCellStyle`   | Applies background, padding, and alignment to a table cell range                      |
+| `updateTableBorders`     | Applies border styles to a table cell range                                           |
+| `updateTableColumnWidth` | Sets fixed widths for one or more table columns                                       |
+| `updateTableRowStyle`    | Applies row-level styling and optional pinned header rows                             |
 
 ## [Comments](./comments/)
 

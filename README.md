@@ -290,6 +290,23 @@ The server supports a full round-trip markdown workflow:
 
 Supported: headings, bold, italic, strikethrough, links, bullet/numbered lists, horizontal rules.
 
+### Live Docs Verification
+
+The repository includes an opt-in live integration test for `cloneTable` against the real Google Docs API. It is skipped by default.
+
+Requirements:
+
+- valid `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`
+- an authorized token already stored via `npx -y @a-bonus/google-docs-mcp auth`
+
+Run it with:
+
+```bash
+GOOGLE_DOCS_LIVE_TESTS=1 npm run test:live:docs
+```
+
+This test creates temporary source/target Google Docs, verifies `cloneTable`, and then deletes the test files.
+
 ---
 
 ## Remote Deployment

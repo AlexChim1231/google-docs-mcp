@@ -672,6 +672,227 @@ export function buildUpdateParagraphStyleRequest(
   return { request, fields: fieldsToUpdate };
 }
 
+export function buildTableStartLocation(
+  tableStartIndex: number,
+  tabId?: string
+): docs_v1.Schema$Location {
+  const location: Record<string, unknown> = { index: tableStartIndex };
+  if (tabId) {
+    location.tabId = tabId;
+  }
+  return location as docs_v1.Schema$Location;
+}
+
+export function buildInsertTableRowRequest(
+  tableStartIndex: number,
+  rowIndex: number,
+  insertBelow: boolean,
+  tabId?: string
+): docs_v1.Schema$Request {
+  return {
+    insertTableRow: {
+      tableCellLocation: {
+        tableStartLocation: buildTableStartLocation(tableStartIndex, tabId),
+        rowIndex,
+        columnIndex: 0,
+      },
+      insertBelow,
+    },
+  };
+}
+
+export function buildDeleteTableRowRequest(
+  tableStartIndex: number,
+  rowIndex: number,
+  tabId?: string
+): docs_v1.Schema$Request {
+  return {
+    deleteTableRow: {
+      tableCellLocation: {
+        tableStartLocation: buildTableStartLocation(tableStartIndex, tabId),
+        rowIndex,
+        columnIndex: 0,
+      },
+    },
+  };
+}
+
+type TableCellStyleArgs = {
+  backgroundColor?: docs_v1.Schema$RgbColor;
+  contentAlignment?: 'CONTENT_ALIGNMENT_UNSPECIFIED' | 'LEFT' | 'CENTER' | 'RIGHT';
+  rowSpan?: number;
+  columnSpan?: number;
+  paddingTopPt?: number;
+  paddingBottomPt?: number;
+  paddingLeftPt?: number;
+  paddingRightPt?: number;
+  borderTop?: docs_v1.Schema$TableCellBorder;
+  borderBottom?: docs_v1.Schema$TableCellBorder;
+  borderLeft?: docs_v1.Schema$TableCellBorder;
+  borderRight?: docs_v1.Schema$TableCellBorder;
+};
+
+function pointDimension(magnitude: number): docs_v1.Schema$Dimension {
+  return { magnitude, unit: 'PT' };
+}
+
+export function buildTableCellStyleRequest(
+  tableStartIndex: number,
+  rowIndex: number,
+  columnIndex: number,
+  style: TableCellStyleArgs,
+  tabId?: string
+): { request: docs_v1.Schema$Request; fields: string[] } | null {
+  const tableCellStyle: Record<string, unknown> = {};
+  const fields: string[] = [];
+
+  if (style.backgroundColor) {
+    tableCellStyle.backgroundColor = { color: { rgbColor: style.backgroundColor } };
+    fields.push('backgroundColor');
+  }
+  if (style.contentAlignment) {
+    tableCellStyle.contentAlignment = style.contentAlignment;
+    fields.push('contentAlignment');
+  }
+  if (style.paddingTopPt !== undefined) {
+    tableCellStyle.paddingTop = pointDimension(style.paddingTopPt);
+    fields.push('paddingTop');
+  }
+  if (style.paddingBottomPt !== undefined) {
+    tableCellStyle.paddingBottom = pointDimension(style.paddingBottomPt);
+    fields.push('paddingBottom');
+  }
+  if (style.paddingLeftPt !== undefined) {
+    tableCellStyle.paddingLeft = pointDimension(style.paddingLeftPt);
+    fields.push('paddingLeft');
+  }
+  if (style.paddingRightPt !== undefined) {
+    tableCellStyle.paddingRight = pointDimension(style.paddingRightPt);
+    fields.push('paddingRight');
+  }
+  if (style.borderTop) {
+    tableCellStyle.borderTop = style.borderTop;
+    fields.push('borderTop');
+  }
+  if (style.borderBottom) {
+    tableCellStyle.borderBottom = style.borderBottom;
+    fields.push('borderBottom');
+  }
+  if (style.borderLeft) {
+    tableCellStyle.borderLeft = style.borderLeft;
+    fields.push('borderLeft');
+  }
+  if (style.borderRight) {
+    tableCellStyle.borderRight = style.borderRight;
+    fields.push('borderRight');
+  }
+
+  if (fields.length === 0) return null;
+
+  const rowSpan = style.rowSpan ?? 1;
+  const columnSpan = style.columnSpan ?? 1;
+
+  return {
+    request: {
+      updateTableCellStyle: {
+        tableRange: {
+          tableCellLocation: {
+            tableStartLocation: buildTableStartLocation(tableStartIndex, tabId),
+            rowIndex,
+            columnIndex,
+          },
+          rowSpan,
+          columnSpan,
+        },
+        tableCellStyle: tableCellStyle as docs_v1.Schema$TableCellStyle,
+        fields: fields.join(','),
+      },
+    },
+    fields,
+  };
+}
+
+export function buildTableBorder(
+  color: docs_v1.Schema$RgbColor,
+  widthPt: number,
+  dashStyle: 'SOLID' | 'DASHED' | 'DOTTED'
+): docs_v1.Schema$TableCellBorder {
+  return {
+    color: { color: { rgbColor: color } },
+    width: pointDimension(widthPt),
+    dashStyle,
+  };
+}
+
+export function buildTableColumnWidthRequest(
+  tableStartIndex: number,
+  columnIndices: number[],
+  widthPt: number,
+  tabId?: string
+): docs_v1.Schema$Request {
+  const request: any = {
+    updateTableColumnProperties: {
+      tableStartLocation: buildTableStartLocation(tableStartIndex, tabId),
+      columnIndices,
+      tableColumnProperties: {
+        widthType: 'FIXED_WIDTH',
+        width: pointDimension(widthPt),
+      },
+      fields: 'widthType,width',
+    },
+  };
+
+  return request as docs_v1.Schema$Request;
+}
+
+export function buildTableRowStyleRequest(
+  tableStartIndex: number,
+  rowIndices: number[],
+  minRowHeightPt: number | undefined,
+  preventOverflow: boolean | undefined,
+  tabId?: string
+): docs_v1.Schema$Request | null {
+  const tableRowStyle: Record<string, unknown> = {};
+  const fields: string[] = [];
+
+  if (minRowHeightPt !== undefined) {
+    tableRowStyle.minRowHeight = pointDimension(minRowHeightPt);
+    fields.push('minRowHeight');
+  }
+  if (preventOverflow !== undefined) {
+    tableRowStyle.preventOverflow = preventOverflow;
+    fields.push('preventOverflow');
+  }
+
+  if (fields.length === 0) return null;
+
+  const request: any = {
+    updateTableRowStyle: {
+      tableStartLocation: buildTableStartLocation(tableStartIndex, tabId),
+      rowIndices,
+      tableRowStyle,
+      fields: fields.join(','),
+    },
+  };
+
+  return request as docs_v1.Schema$Request;
+}
+
+export function buildPinTableHeaderRowsRequest(
+  tableStartIndex: number,
+  pinnedHeaderRowsCount: number,
+  tabId?: string
+): docs_v1.Schema$Request {
+  const request: any = {
+    pinTableHeaderRows: {
+      tableStartLocation: buildTableStartLocation(tableStartIndex, tabId),
+      pinnedHeaderRowsCount,
+    },
+  };
+
+  return request as docs_v1.Schema$Request;
+}
+
 // --- Specific Feature Helpers ---
 
 export async function createTable(
