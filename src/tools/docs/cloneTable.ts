@@ -6,10 +6,7 @@ import { getDocsClient } from '../../clients.js';
 import { DocumentIdParameter } from '../../types.js';
 import * as GDocsHelpers from '../../googleDocsApiHelpers.js';
 import { buildInsertTableWithDataRequests } from './insertTableWithData.js';
-import {
-  extractDocumentTables,
-  extractTableSnapshot,
-} from './structureHelpers.js';
+import { extractDocumentTables, extractTableSnapshot } from './structureHelpers.js';
 
 const CloneTableParameters = DocumentIdParameter.extend({
   sourceDocumentId: z.string().min(1).describe('Document ID containing the source table template.'),
@@ -127,7 +124,10 @@ export function register(server: FastMCP) {
               table.rowCount === snapshot.rowCount &&
               table.columnCount === snapshot.columnCount
           )
-          .sort((a, b) => (a.startIndex ?? Number.MAX_SAFE_INTEGER) - (b.startIndex ?? Number.MAX_SAFE_INTEGER))[0];
+          .sort(
+            (a, b) =>
+              (a.startIndex ?? Number.MAX_SAFE_INTEGER) - (b.startIndex ?? Number.MAX_SAFE_INTEGER)
+          )[0];
         if (!targetTable || targetTable.startIndex == null) {
           throw new UserError(
             'Cloned target table was inserted, but could not be re-located safely for style copying.'

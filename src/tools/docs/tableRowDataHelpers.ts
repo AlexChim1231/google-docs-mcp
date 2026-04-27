@@ -70,7 +70,9 @@ export function buildReplaceTableRowRequests(
   return table.cells
     .filter((cell) => cell.rowIndex === rowIndex)
     .sort((a, b) => b.columnIndex - a.columnIndex)
-    .flatMap((cell) => buildReplaceTableCellContentRequests(cell, values[cell.columnIndex] ?? '', tabId));
+    .flatMap((cell) =>
+      buildReplaceTableCellContentRequests(cell, values[cell.columnIndex] ?? '', tabId)
+    );
 }
 
 export async function replaceTableRowData(

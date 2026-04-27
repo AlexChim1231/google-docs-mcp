@@ -60,7 +60,12 @@ export function register(server: FastMCP) {
         }
 
         const insertRequests = args.rows.map(() =>
-          GDocsHelpers.buildInsertTableRowRequest(table.startIndex!, table.rowCount - 1, true, args.tabId)
+          GDocsHelpers.buildInsertTableRowRequest(
+            table.startIndex!,
+            table.rowCount - 1,
+            true,
+            args.tabId
+          )
         );
         await GDocsHelpers.executeBatchUpdateWithSplitting(
           docs,
