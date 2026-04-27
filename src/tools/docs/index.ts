@@ -18,6 +18,17 @@ import { register as insertPageBreak } from './insertPageBreak.js';
 import { register as insertSectionBreak } from './insertSectionBreak.js';
 import { register as updateSectionStyle } from './updateSectionStyle.js';
 import { register as insertImage } from './insertImage.js';
+import { register as insertDateChip } from './insertDateChip.js';
+import { register as insertPerson } from './insertPerson.js';
+import { register as insertRichLink } from './insertRichLink.js';
+import { register as listSmartChips } from './listSmartChips.js';
+import { register as cloneTable } from './cloneTable.js';
+import { register as listDocumentTables } from './listDocumentTables.js';
+import { register as getTableStructure } from './getTableStructure.js';
+import { register as findSectionsByHeading } from './findSectionsByHeading.js';
+import { register as replaceTableRowData } from './replaceTableRowData.js';
+import { register as appendTableRows } from './appendTableRows.js';
+import { register as deleteTableRows } from './deleteTableRows.js';
 
 // Sub-domains
 import { registerCommentTools } from './comments/index.js';
@@ -42,6 +53,17 @@ export function registerDocsTools(server: FastMCP) {
   insertSectionBreak(server);
   updateSectionStyle(server);
   insertImage(server);
+  insertDateChip(server);
+  insertPerson(server);
+  insertRichLink(server);
+  listSmartChips(server);
+  cloneTable(server);
+  listDocumentTables(server);
+  getTableStructure(server);
+  findSectionsByHeading(server);
+  replaceTableRowData(server);
+  appendTableRows(server);
+  deleteTableRows(server);
 
   // Sub-domains
   registerFormattingTools(server);
