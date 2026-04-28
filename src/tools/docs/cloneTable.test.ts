@@ -174,6 +174,8 @@ describe('table snapshot helpers', () => {
 
   it('requests tab table text and contentAlignment with the same structure as body tables', () => {
     const source = readFileSync(new URL('./cloneTable.ts', import.meta.url), 'utf8');
-    expect(source).toContain('contentAlignment,paddingTop,paddingBottom,paddingLeft,paddingRight,rowSpan,columnSpan),content(paragraph(');
+    expect(source).toContain(
+      'contentAlignment,paddingTop,paddingBottom,paddingLeft,paddingRight,rowSpan,columnSpan),content(paragraph('
+    );
   });
 });
