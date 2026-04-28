@@ -719,7 +719,7 @@ export function buildDeleteTableRowRequest(
 
 type TableCellStyleArgs = {
   backgroundColor?: docs_v1.Schema$RgbColor;
-  contentAlignment?: 'CONTENT_ALIGNMENT_UNSPECIFIED' | 'LEFT' | 'CENTER' | 'RIGHT';
+  contentAlignment?: 'CONTENT_ALIGNMENT_UNSPECIFIED' | 'TOP' | 'MIDDLE' | 'BOTTOM';
   rowSpan?: number;
   columnSpan?: number;
   paddingTopPt?: number;

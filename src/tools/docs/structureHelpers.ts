@@ -46,7 +46,7 @@ export interface ExtractedTableCellStyle {
   rowIndex: number;
   columnIndex: number;
   backgroundColor?: docs_v1.Schema$RgbColor;
-  contentAlignment?: 'CONTENT_ALIGNMENT_UNSPECIFIED' | 'LEFT' | 'CENTER' | 'RIGHT' | null;
+  contentAlignment?: 'CONTENT_ALIGNMENT_UNSPECIFIED' | 'TOP' | 'MIDDLE' | 'BOTTOM' | null;
   paddingTopPt?: number;
   paddingBottomPt?: number;
   paddingLeftPt?: number;
@@ -183,9 +183,9 @@ function normalizeCellStyle(
   if (!style && !firstParagraphHasBoldText) return null;
 
   const contentAlignment =
-    style?.contentAlignment === 'LEFT' ||
-    style?.contentAlignment === 'CENTER' ||
-    style?.contentAlignment === 'RIGHT' ||
+    style?.contentAlignment === 'TOP' ||
+    style?.contentAlignment === 'MIDDLE' ||
+    style?.contentAlignment === 'BOTTOM' ||
     style?.contentAlignment === 'CONTENT_ALIGNMENT_UNSPECIFIED'
       ? style.contentAlignment
       : null;

@@ -88,10 +88,30 @@ export function register(server: FastMCP) {
 
         const firstAppendedRowIndex = table.rowCount;
         for (const [offset, rowValues] of args.rows.entries()) {
+          const currentTable =
+            offset === 0
+              ? updatedTable
+              : getTableById(
+                  (
+                    await docs.documents.get({
+                      documentId: args.documentId,
+                      includeTabsContent: true,
+                      fields:
+                        'body(content(startIndex,endIndex,table(tableRows(tableCells(startIndex,endIndex,content(startIndex,endIndex,paragraph(elements(startIndex,endIndex,textRun(content))))))))),tabs(tabProperties(tabId,title),documentTab(body(content(startIndex,endIndex,table(tableRows(tableCells(startIndex,endIndex,content(startIndex,endIndex,paragraph(elements(startIndex,endIndex,textRun(content)))))))))))',
+                    })
+                  ).data,
+                  args.tableId,
+                  args.tabId
+                );
+          if (!currentTable) {
+            throw new UserError(
+              `Table "${args.tableId}" could not be re-fetched while populating appended rows.`
+            );
+          }
           await replaceTableRowDataInternal(
             docs,
             args.documentId,
-            updatedTable,
+            currentTable,
             firstAppendedRowIndex + offset,
             rowValues,
             args.tabId

@@ -10,7 +10,7 @@ const HexColor = z
   .string()
   .refine(validateHexColor, { message: 'Invalid hex color format (e.g., #D9E2F3).' });
 
-const Alignment = z.enum(['LEFT', 'CENTER', 'RIGHT']);
+const Alignment = z.enum(['TOP', 'MIDDLE', 'BOTTOM']);
 
 export function register(server: FastMCP) {
   server.addTool({
@@ -24,7 +24,7 @@ export function register(server: FastMCP) {
       columnStart: z.number().int().min(0).describe('Zero-based starting column index.'),
       columnEnd: z.number().int().min(0).describe('Zero-based ending column index (inclusive).'),
       backgroundColor: HexColor.optional().describe('Cell background color, e.g. "#D9E2F3".'),
-      contentAlignment: Alignment.optional().describe('Horizontal content alignment inside cells.'),
+      contentAlignment: Alignment.optional().describe('Vertical content alignment inside cells.'),
       paddingTopPt: z.number().min(0).optional().describe('Top padding in points.'),
       paddingBottomPt: z.number().min(0).optional().describe('Bottom padding in points.'),
       paddingLeftPt: z.number().min(0).optional().describe('Left padding in points.'),
