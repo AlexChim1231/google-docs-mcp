@@ -19,7 +19,7 @@ describe('table formatting request builders', () => {
         rowSpan: 2,
         columnSpan: 3,
         backgroundColor: hexToRgbColor('#D9E2F3')!,
-        contentAlignment: 'CENTER',
+        contentAlignment: 'MIDDLE',
         paddingTopPt: 8,
         borderTop: border,
       },
@@ -41,6 +41,7 @@ describe('table formatting request builders', () => {
     });
     expect(result!.request.updateTableCellStyle!.tableRange!.rowSpan).toBe(2);
     expect(result!.request.updateTableCellStyle!.tableRange!.columnSpan).toBe(3);
+    expect(result!.request.updateTableCellStyle!.tableCellStyle!.contentAlignment).toBe('MIDDLE');
   });
 
   it('builds fixed-width column property requests', () => {

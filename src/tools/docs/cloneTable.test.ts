@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { extractTableSnapshot, findTableNearestStartIndex } from './structureHelpers.js';
+import { readFileSync } from 'node:fs';
 
 const mockDocument = {
   body: {
@@ -28,7 +29,7 @@ const mockDocument = {
                   endIndex: 25,
                   tableCellStyle: {
                     backgroundColor: { color: { rgbColor: { red: 0.85, green: 0.9, blue: 0.95 } } },
-                    contentAlignment: 'CENTER',
+                    contentAlignment: 'MIDDLE',
                     paddingTop: { magnitude: 6, unit: 'PT' },
                   },
                   content: [
@@ -160,7 +161,7 @@ describe('table snapshot helpers', () => {
     expect(snapshot?.cellStyles[0]).toMatchObject({
       rowIndex: 0,
       columnIndex: 0,
-      contentAlignment: 'CENTER',
+      contentAlignment: 'MIDDLE',
       paddingTopPt: 6,
       hasBoldText: true,
     });
@@ -169,5 +170,10 @@ describe('table snapshot helpers', () => {
   it('finds the table nearest to an insertion index', () => {
     const table = findTableNearestStartIndex(mockDocument, 100);
     expect(table?.tableId).toBe('table:body:1');
+  });
+
+  it('requests tab table text and contentAlignment with the same structure as body tables', () => {
+    const source = readFileSync(new URL('./cloneTable.ts', import.meta.url), 'utf8');
+    expect(source).toContain('contentAlignment,paddingTop,paddingBottom,paddingLeft,paddingRight,rowSpan,columnSpan),content(paragraph(');
   });
 });

@@ -8,6 +8,9 @@ import * as GDocsHelpers from '../../googleDocsApiHelpers.js';
 import { buildInsertTableWithDataRequests } from './insertTableWithData.js';
 import { extractDocumentTables, extractTableSnapshot } from './structureHelpers.js';
 
+const CLONE_TABLE_SOURCE_FIELDS =
+  'body(content(startIndex,endIndex,table(rows,columns,tableStyle(tableColumnProperties(width,widthType)),tableRows(startIndex,endIndex,tableRowStyle(minRowHeight,preventOverflow,tableHeader),tableCells(startIndex,endIndex,tableCellStyle(backgroundColor,borderTop(color,width,dashStyle),borderBottom(color,width,dashStyle),borderLeft(color,width,dashStyle),borderRight(color,width,dashStyle),contentAlignment,paddingTop,paddingBottom,paddingLeft,paddingRight,rowSpan,columnSpan),content(paragraph(elements(startIndex,endIndex,textRun(content,textStyle(bold))))))))),tabs(tabProperties(tabId,title),documentTab(body(content(startIndex,endIndex,table(rows,columns,tableStyle(tableColumnProperties(width,widthType)),tableRows(startIndex,endIndex,tableRowStyle(minRowHeight,preventOverflow,tableHeader),tableCells(startIndex,endIndex,tableCellStyle(backgroundColor,borderTop(color,width,dashStyle),borderBottom(color,width,dashStyle),borderLeft(color,width,dashStyle),borderRight(color,width,dashStyle),contentAlignment,paddingTop,paddingBottom,paddingLeft,paddingRight,rowSpan,columnSpan),content(paragraph(elements(startIndex,endIndex,textRun(content,textStyle(bold))))))))))))';
+
 const CloneTableParameters = DocumentIdParameter.extend({
   sourceDocumentId: z.string().min(1).describe('Document ID containing the source table template.'),
   sourceTableId: z.string().min(1).describe('Source MCP table ID from listDocumentTables.'),
@@ -66,8 +69,7 @@ export function register(server: FastMCP) {
         const sourceRes = await docs.documents.get({
           documentId: args.sourceDocumentId,
           includeTabsContent: true,
-          fields:
-            'body(content(startIndex,endIndex,table(rows,columns,tableStyle(tableColumnProperties(width,widthType)),tableRows(startIndex,endIndex,tableRowStyle(minRowHeight,preventOverflow,tableHeader),tableCells(startIndex,endIndex,tableCellStyle(backgroundColor,borderTop(color,width,dashStyle),borderBottom(color,width,dashStyle),borderLeft(color,width,dashStyle),borderRight(color,width,dashStyle),contentAlignment,paddingTop,paddingBottom,paddingLeft,paddingRight,rowSpan,columnSpan),content(paragraph(elements(startIndex,endIndex,textRun(content,textStyle(bold))))))))),tabs(tabProperties(tabId,title),documentTab(body(content(startIndex,endIndex,table(rows,columns,tableStyle(tableColumnProperties(width,widthType)),tableRows(startIndex,endIndex,tableRowStyle(minRowHeight,preventOverflow,tableHeader),tableCells(startIndex,endIndex,tableCellStyle(backgroundColor,borderTop(color,width,dashStyle),borderBottom(color,width,dashStyle),borderLeft(color,width,dashStyle),borderRight(color,width,dashStyle),content(paragraph(elements(startIndex,endIndex,textRun(content,textStyle(bold))))),paddingTop,paddingBottom,paddingLeft,paddingRight,rowSpan,columnSpan))))))))',
+          fields: CLONE_TABLE_SOURCE_FIELDS,
         });
 
         const snapshot = extractTableSnapshot(sourceRes.data, args.sourceTableId, args.sourceTabId);
