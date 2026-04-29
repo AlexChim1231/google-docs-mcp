@@ -2,6 +2,7 @@ import type { FastMCP } from 'fastmcp';
 import { UserError } from 'fastmcp';
 import { z } from 'zod';
 import { getDocsClient } from '../../clients.js';
+import { DOCUMENT_GET_FULL_WITH_TABS } from '../../docsFieldMasks.js';
 import { DocumentIdParameter } from '../../types.js';
 import { extractSmartChips } from './smartChipHelpers.js';
 
@@ -28,8 +29,7 @@ export function register(server: FastMCP) {
         const res = await docs.documents.get({
           documentId: args.documentId,
           includeTabsContent: true,
-          fields:
-            'body(content(paragraph(elements(startIndex,endIndex,dateElement(dateId,dateElementProperties),richLink(richLinkId,richLinkProperties),person(personId,personProperties))),table(tableRows(tableCells(content(paragraph(elements(startIndex,endIndex,dateElement(dateId,dateElementProperties),richLink(richLinkId,richLinkProperties),person(personId,personProperties))))))))),tabs(tabProperties(tabId,title),documentTab(body(content(paragraph(elements(startIndex,endIndex,dateElement(dateId,dateElementProperties),richLink(richLinkId,richLinkProperties),person(personId,personProperties))),table(tableRows(tableCells(content(paragraph(elements(startIndex,endIndex,dateElement(dateId,dateElementProperties),richLink(richLinkId,richLinkProperties),person(personId,personProperties)))))))))))',
+          fields: DOCUMENT_GET_FULL_WITH_TABS,
         });
 
         const chips = extractSmartChips(res.data, args.tabId);

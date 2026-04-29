@@ -2,6 +2,7 @@ import type { FastMCP } from 'fastmcp';
 import { UserError } from 'fastmcp';
 import { z } from 'zod';
 import { getDocsClient } from '../../clients.js';
+import { DOCUMENT_GET_FULL_WITH_TABS } from '../../docsFieldMasks.js';
 import { DocumentIdParameter } from '../../types.js';
 import { getTableById } from './structureHelpers.js';
 import { replaceTableRowData as replaceTableRowDataInternal } from './tableRowDataHelpers.js';
@@ -38,8 +39,7 @@ export function register(server: FastMCP) {
         const res = await docs.documents.get({
           documentId: args.documentId,
           includeTabsContent: true,
-          fields:
-            'body(content(startIndex,endIndex,table(tableRows(tableCells(startIndex,endIndex,content(startIndex,endIndex,paragraph(elements(startIndex,endIndex,textRun(content))))))))),tabs(tabProperties(tabId,title),documentTab(body(content(startIndex,endIndex,table(tableRows(tableCells(startIndex,endIndex,content(startIndex,endIndex,paragraph(elements(startIndex,endIndex,textRun(content)))))))))))',
+          fields: DOCUMENT_GET_FULL_WITH_TABS,
         });
 
         const table = getTableById(res.data, args.tableId, args.tabId);

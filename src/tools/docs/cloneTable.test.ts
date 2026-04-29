@@ -172,10 +172,9 @@ describe('table snapshot helpers', () => {
     expect(table?.tableId).toBe('table:body:1');
   });
 
-  it('requests tab table text and contentAlignment with the same structure as body tables', () => {
+  it('uses full document projection for tab-aware table reads (Google field mask restriction)', () => {
     const source = readFileSync(new URL('./cloneTable.ts', import.meta.url), 'utf8');
-    expect(source).toContain(
-      'contentAlignment,paddingTop,paddingBottom,paddingLeft,paddingRight,rowSpan,columnSpan),content(paragraph('
-    );
+    expect(source).toContain("from '../../docsFieldMasks.js'");
+    expect(source).toContain('fields: DOCUMENT_GET_FULL_WITH_TABS');
   });
 });

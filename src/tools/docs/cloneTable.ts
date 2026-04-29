@@ -3,13 +3,11 @@ import { UserError } from 'fastmcp';
 import { z } from 'zod';
 import { docs_v1 } from 'googleapis';
 import { getDocsClient } from '../../clients.js';
+import { DOCUMENT_GET_FULL_WITH_TABS } from '../../docsFieldMasks.js';
 import { DocumentIdParameter } from '../../types.js';
 import * as GDocsHelpers from '../../googleDocsApiHelpers.js';
 import { buildInsertTableWithDataRequests } from './insertTableWithData.js';
 import { extractDocumentTables, extractTableSnapshot } from './structureHelpers.js';
-
-const CLONE_TABLE_SOURCE_FIELDS =
-  'body(content(startIndex,endIndex,table(rows,columns,tableStyle(tableColumnProperties(width,widthType)),tableRows(startIndex,endIndex,tableRowStyle(minRowHeight,preventOverflow,tableHeader),tableCells(startIndex,endIndex,tableCellStyle(backgroundColor,borderTop(color,width,dashStyle),borderBottom(color,width,dashStyle),borderLeft(color,width,dashStyle),borderRight(color,width,dashStyle),contentAlignment,paddingTop,paddingBottom,paddingLeft,paddingRight,rowSpan,columnSpan),content(paragraph(elements(startIndex,endIndex,textRun(content,textStyle(bold))))))))),tabs(tabProperties(tabId,title),documentTab(body(content(startIndex,endIndex,table(rows,columns,tableStyle(tableColumnProperties(width,widthType)),tableRows(startIndex,endIndex,tableRowStyle(minRowHeight,preventOverflow,tableHeader),tableCells(startIndex,endIndex,tableCellStyle(backgroundColor,borderTop(color,width,dashStyle),borderBottom(color,width,dashStyle),borderLeft(color,width,dashStyle),borderRight(color,width,dashStyle),contentAlignment,paddingTop,paddingBottom,paddingLeft,paddingRight,rowSpan,columnSpan),content(paragraph(elements(startIndex,endIndex,textRun(content,textStyle(bold))))))))))))';
 
 const CloneTableParameters = DocumentIdParameter.extend({
   sourceDocumentId: z.string().min(1).describe('Document ID containing the source table template.'),
@@ -69,7 +67,7 @@ export function register(server: FastMCP) {
         const sourceRes = await docs.documents.get({
           documentId: args.sourceDocumentId,
           includeTabsContent: true,
-          fields: CLONE_TABLE_SOURCE_FIELDS,
+          fields: DOCUMENT_GET_FULL_WITH_TABS,
         });
 
         const snapshot = extractTableSnapshot(sourceRes.data, args.sourceTableId, args.sourceTabId);
@@ -114,8 +112,7 @@ export function register(server: FastMCP) {
         const targetRes = await docs.documents.get({
           documentId: args.documentId,
           includeTabsContent: true,
-          fields:
-            'body(content(startIndex,endIndex,table(rows,columns,tableRows(tableCells(startIndex,endIndex,content(paragraph(elements(startIndex,endIndex,textRun(content))))))))),tabs(tabProperties(tabId,title),documentTab(body(content(startIndex,endIndex,table(rows,columns,tableRows(tableCells(startIndex,endIndex,content(paragraph(elements(startIndex,endIndex,textRun(content)))))))))))',
+          fields: DOCUMENT_GET_FULL_WITH_TABS,
         });
 
         const targetTable = extractDocumentTables(targetRes.data, args.targetTabId)
