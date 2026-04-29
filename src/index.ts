@@ -27,6 +27,9 @@ import { registerLandingPage } from './landingPage.js';
 import { registerDownloadRoute } from './downloadProxy.js';
 import { FirestoreTokenStorage } from './firestoreTokenStorage.js';
 import { logger } from './logger.js';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 // --- Auth subcommand ---
 if (process.argv[2] === 'auth') {
