@@ -6,7 +6,7 @@ import * as SheetsHelpers from '../../googleSheetsApiHelpers.js';
 
 export function register(server: FastMCP) {
   server.addTool({
-    name: 'appendTableRows',
+    name: 'appendTableRows_sheets',
     description:
       'Appends rows to the end of a table using table-aware insertion. This method respects footers and automatically inserts rows before the footer if one exists.',
     parameters: z.object({

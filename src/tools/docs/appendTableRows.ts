@@ -9,7 +9,7 @@ import { replaceTableRowData as replaceTableRowDataInternal } from './tableRowDa
 
 export function register(server: FastMCP) {
   server.addTool({
-    name: 'appendTableRows',
+    name: 'appendTableRows_docs',
     description:
       'Appends one or more plain-text rows to the end of an existing Google Docs table while preserving the table structure.',
     parameters: DocumentIdParameter.extend({
