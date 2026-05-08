@@ -17,7 +17,7 @@ export function register(server: FastMCP) {
         .optional()
         .default('text')
         .describe(
-          "Output format: 'text' (plain text), 'json' (raw API structure, complex), 'markdown' (experimental conversion)."
+          "Output format: 'text' (plain text, from Drive api export, include all tabs), 'json' (raw API structure, complex), 'markdown' (from Drive api export, include all tabs)."
         ),
       maxLength: z
         .number()
@@ -29,7 +29,7 @@ export function register(server: FastMCP) {
         .string()
         .optional()
         .describe(
-          'The ID of the specific tab to read. If not specified, reads the first tab (or legacy document.body for documents without tabs).'
+          'The ID of the specific tab to read. If not specified, reads the first tab (or legacy document.body for documents without tabs). This is only applicable if the format is `json`'
         ),
     }),
     execute: async (args, { log }) => {
@@ -85,74 +85,15 @@ export function register(server: FastMCP) {
           return jsonContent;
         }
 
-        if (args.format === 'markdown') {
-          const markdownContent = docsJsonToMarkdown(contentSource);
-          const totalLength = markdownContent.length;
-          log.info(`Generated markdown: ${totalLength} characters`);
+        const text = args.format === 'markdown'
+          ? await readDocumentAsMarkdown(args)
+          : await readDocumentAsText(args);
 
-          // Apply length limit to markdown if specified
-          if (args.maxLength && totalLength > args.maxLength) {
-            const truncatedContent = markdownContent.substring(0, args.maxLength);
-            return `${truncatedContent}\n\n... [Markdown truncated to ${args.maxLength} chars of ${totalLength} total. Use maxLength parameter to adjust limit or remove it to get full content.]`;
-          }
-
-          return markdownContent;
+        if (!args.maxLength) {
+          return text;
         }
 
-        // Default: Text format - extract all text content
-        let textContent = '';
-        let elementCount = 0;
-
-        // Process all content elements from contentSource
-        contentSource.body?.content?.forEach((element: any) => {
-          elementCount++;
-
-          // Handle paragraphs
-          if (element.paragraph?.elements) {
-            element.paragraph.elements.forEach((pe: any) => {
-              if (pe.textRun?.content) {
-                textContent += pe.textRun.content;
-              }
-            });
-          }
-
-          // Handle tables
-          if (element.table?.tableRows) {
-            element.table.tableRows.forEach((row: any) => {
-              row.tableCells?.forEach((cell: any) => {
-                cell.content?.forEach((cellElement: any) => {
-                  cellElement.paragraph?.elements?.forEach((pe: any) => {
-                    if (pe.textRun?.content) {
-                      textContent += pe.textRun.content;
-                    }
-                  });
-                });
-              });
-            });
-          }
-        });
-
-        if (!textContent.trim()) return 'Document found, but appears empty.';
-
-        const totalLength = textContent.length;
-        log.info(`Document contains ${totalLength} characters across ${elementCount} elements`);
-        log.info(`maxLength parameter: ${args.maxLength || 'not specified'}`);
-
-        // Apply length limit only if specified
-        if (args.maxLength && totalLength > args.maxLength) {
-          const truncatedContent = textContent.substring(0, args.maxLength);
-          log.info(`Truncating content from ${totalLength} to ${args.maxLength} characters`);
-          return `Content (truncated to ${args.maxLength} chars of ${totalLength} total):\n---\n${truncatedContent}\n\n... [Document continues for ${totalLength - args.maxLength} more characters. Use maxLength parameter to adjust limit or remove it to get full content.]`;
-        }
-
-        // Return full content
-        const fullResponse = `Content (${totalLength} characters):\n---\n${textContent}`;
-        const responseLength = fullResponse.length;
-        log.info(
-          `Returning full content: ${responseLength} characters in response (${totalLength} content + ${responseLength - totalLength} metadata)`
-        );
-
-        return fullResponse;
+        return truncateText(text, args.maxLength);
       } catch (error: any) {
         log.error(
           `Error reading doc ${args.documentId}: ${error.message || 'Unknown error'} (code: ${error.code || 'N/A'})`
@@ -200,4 +141,43 @@ export function register(server: FastMCP) {
       }
     },
   });
+}
+
+function maskBase64Content(markdown: string): string {
+  return markdown.replace(
+    /(data:[a-zA-Z0-9.+/-]+\/[a-zA-Z0-9.+-]+;base64,)[A-Za-z0-9+/=_-]+/g,
+    '$1[MASKED_BASE64]'
+  );
+}
+
+async function readDocumentAsMarkdown(args: any): Promise<string> {
+  const drive = await getDriveClient();
+  const exportRes = await drive.files.export(
+    { fileId: args.documentId, mimeType: 'text/markdown' },
+    { responseType: 'text' }
+  );
+  const textContent = (exportRes as any).data as string;
+  return maskBase64Content(textContent);
+}
+
+async function readDocumentAsText(args: any): Promise<string> {
+  const drive = await getDriveClient();
+  const exportRes = await drive.files.export(
+    { fileId: args.documentId, mimeType: 'text/plain' },
+    { responseType: 'text' }
+  );
+  const textContent = (exportRes as any).data as string;
+  return textContent;
+}
+
+function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text;
+
+  const truncatedText = text.substring(0, maxLength);
+
+  return `
+  ${truncatedText}
+  
+  ... [Document continues for ${text.length - maxLength} more characters. Use maxLength parameter to adjust limit or remove it to get full content.]
+  `;
 }
