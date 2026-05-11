@@ -1,5 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
-import { findTextRange, getTableCellRange, getParagraphRange } from './googleDocsApiHelpers.js';
+import {
+  findTextRange,
+  getTableCellRange,
+  getParagraphRange,
+  buildInsertTableRowRequest,
+} from './googleDocsApiHelpers.js';
 
 describe('Text Range Finding', () => {
   describe('findTextRange', () => {
@@ -574,6 +579,34 @@ describe('Table Cell Range Finding', () => {
       const result = await getTableCellRange(mockDocs as any, 'doc123', 14, 0, 0);
       // Should span from first paragraph start to last paragraph end - 1
       expect(result).toEqual({ startIndex: 16, endIndex: 35 });
+    });
+  });
+});
+
+describe('buildInsertTableRowRequest', () => {
+  it('builds insertTableRow with default column 0 and no tabId', () => {
+    expect(buildInsertTableRowRequest(100, 2, true)).toEqual({
+      insertTableRow: {
+        tableCellLocation: {
+          tableStartLocation: { index: 100 },
+          rowIndex: 2,
+          columnIndex: 0,
+        },
+        insertBelow: true,
+      },
+    });
+  });
+
+  it('includes tabId on table start location and custom column index', () => {
+    expect(buildInsertTableRowRequest(50, 0, false, 't1', 3)).toEqual({
+      insertTableRow: {
+        tableCellLocation: {
+          tableStartLocation: { index: 50, tabId: 't1' },
+          rowIndex: 0,
+          columnIndex: 3,
+        },
+        insertBelow: false,
+      },
     });
   });
 });

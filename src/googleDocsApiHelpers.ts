@@ -119,6 +119,8 @@ export async function executeBatchUpdateWithSplitting(
     (r) =>
       'insertText' in r ||
       'insertTable' in r ||
+      'insertTableRow' in r ||
+      'insertTableColumn' in r ||
       'insertPageBreak' in r ||
       'insertInlineImage' in r ||
       'insertSectionBreak' in r
@@ -129,6 +131,8 @@ export async function executeBatchUpdateWithSplitting(
       !(
         'insertText' in r ||
         'insertTable' in r ||
+        'insertTableRow' in r ||
+        'insertTableColumn' in r ||
         'insertPageBreak' in r ||
         'insertInlineImage' in r ||
         'insertSectionBreak' in r
@@ -687,14 +691,15 @@ export function buildInsertTableRowRequest(
   tableStartIndex: number,
   rowIndex: number,
   insertBelow: boolean,
-  tabId?: string
+  tabId?: string,
+  columnIndex: number = 0
 ): docs_v1.Schema$Request {
   return {
     insertTableRow: {
       tableCellLocation: {
         tableStartLocation: buildTableStartLocation(tableStartIndex, tabId),
         rowIndex,
-        columnIndex: 0,
+        columnIndex,
       },
       insertBelow,
     },
