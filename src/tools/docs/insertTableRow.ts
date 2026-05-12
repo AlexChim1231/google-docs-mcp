@@ -6,14 +6,13 @@ import { DOCUMENT_GET_FULL_WITH_TABS } from '../../docsFieldMasks.js';
 import { DocumentIdParameter } from '../../types.js';
 import * as GDocsHelpers from '../../googleDocsApiHelpers.js';
 import { getTableById } from './structureHelpers.js';
-
-const MAX_BATCH_UPDATE_REQUESTS = 50;
+import { replaceTableRowData as replaceTableRowDataInternal } from './tableRowDataHelpers.js';
 
 export function register(server: FastMCP) {
   server.addTool({
     name: 'insertTableRow',
     description:
-      'Inserts one or more empty rows into a Google Docs table using insertTableRow (InsertTableRowRequest). Rows are created relative to a reference row; fill cells with replaceTableRowData or appendTableRows_docs.',
+      'Inserts one or more rows into a Google Docs table relative to a reference row. Pass optional `rows` (plain-text per cell, same shape as appendTableRows_docs) to insert and fill at that index; omit `rows` and use insertCount for empty rows.',
     parameters: DocumentIdParameter.extend({
       tableId: z
         .string()
@@ -24,7 +23,7 @@ export function register(server: FastMCP) {
         .int()
         .min(0)
         .describe(
-          'Zero-based index of the reference row. New empty row(s) are inserted immediately above or below this row (see insertBelow).'
+          'Zero-based index of the reference row. New row(s) are inserted immediately above or below this row (see insertBelow).'
         ),
       insertBelow: z
         .boolean()
@@ -45,7 +44,17 @@ export function register(server: FastMCP) {
         .min(1)
         .max(200)
         .optional()
-        .describe('Number of empty rows to insert in one operation (default 1).'),
+        .describe(
+          'Number of empty rows to insert (default 1). Ignored when `rows` is provided; insert count is then rows.length.'
+        ),
+      rows: z
+        .array(z.array(z.string()).max(50))
+        .min(1)
+        .max(200)
+        .optional()
+        .describe(
+          'Optional: one logical row per inner array (plain-text cell values). Same format as appendTableRows_docs. When set, that many rows are inserted at the reference position and filled.'
+        ),
       tabId: z
         .string()
         .optional()
@@ -55,11 +64,11 @@ export function register(server: FastMCP) {
     }),
     execute: async (args, { log }) => {
       const docs = await getDocsClient();
-      const insertCount = args.insertCount ?? 1;
       const columnIndex = args.columnIndex ?? 0;
+      const rowCountToInsert = args.rows?.length ?? args.insertCount ?? 1;
 
       log.info(
-        `insertTableRow: ${insertCount} row(s) ${args.insertBelow ? 'below' : 'above'} reference row ${args.referenceRowIndex} in ${args.tableId}, doc ${args.documentId}${args.tabId ? ` (tab: ${args.tabId})` : ''}`
+        `insertTableRow: ${rowCountToInsert} row(s) ${args.insertBelow ? 'below' : 'above'} reference row ${args.referenceRowIndex} in ${args.tableId}, doc ${args.documentId}${args.tabId ? ` (tab: ${args.tabId})` : ''}${args.rows ? ' (with cell data)' : ''}`
       );
 
       try {
@@ -73,7 +82,8 @@ export function register(server: FastMCP) {
         if (!table) {
           throw new UserError(`Table "${args.tableId}" not found in document.`);
         }
-        if (table.startIndex == null) {
+        const tableStartIndex = table.startIndex;
+        if (tableStartIndex == null) {
           throw new UserError(`Table "${args.tableId}" does not expose a valid table start index.`);
         }
         if (args.referenceRowIndex >= table.rowCount) {
@@ -87,9 +97,19 @@ export function register(server: FastMCP) {
           );
         }
 
-        const requests = Array.from({ length: insertCount }, () =>
+        if (args.rows) {
+          for (const [offset, rowValues] of args.rows.entries()) {
+            if (rowValues.length > table.columnCount) {
+              throw new UserError(
+                `Row ${offset} has ${rowValues.length} values, but table ${args.tableId} only has ${table.columnCount} columns.`
+              );
+            }
+          }
+        }
+
+        const insertRequests = Array.from({ length: rowCountToInsert }, () =>
           GDocsHelpers.buildInsertTableRowRequest(
-            table.startIndex,
+            tableStartIndex,
             args.referenceRowIndex,
             args.insertBelow,
             args.tabId,
@@ -97,12 +117,56 @@ export function register(server: FastMCP) {
           )
         );
 
-        for (let i = 0; i < requests.length; i += MAX_BATCH_UPDATE_REQUESTS) {
-          const batch = requests.slice(i, i + MAX_BATCH_UPDATE_REQUESTS);
-          await GDocsHelpers.executeBatchUpdate(docs, args.documentId, batch);
+        await GDocsHelpers.executeBatchUpdateWithSplitting(docs, args.documentId, insertRequests, log);
+
+        if (!args.rows || args.rows.length === 0) {
+          return `Inserted ${rowCountToInsert} empty row(s) ${args.insertBelow ? 'below' : 'above'} row ${args.referenceRowIndex} in table ${args.tableId}.`;
         }
 
-        return `Inserted ${insertCount} empty row(s) ${args.insertBelow ? 'below' : 'above'} row ${args.referenceRowIndex} in table ${args.tableId}.`;
+        const refreshed = await docs.documents.get({
+          documentId: args.documentId,
+          includeTabsContent: true,
+          fields: DOCUMENT_GET_FULL_WITH_TABS,
+        });
+
+        const updatedTable = getTableById(refreshed.data, args.tableId, args.tabId);
+        if (!updatedTable) {
+          throw new UserError(`Table "${args.tableId}" could not be found after inserting rows.`);
+        }
+
+        const firstInsertedRowIndex = args.insertBelow ? args.referenceRowIndex + 1 : args.referenceRowIndex;
+
+        for (const [offset, rowValues] of args.rows.entries()) {
+          const currentTable =
+            offset === 0
+              ? updatedTable
+              : getTableById(
+                  (
+                    await docs.documents.get({
+                      documentId: args.documentId,
+                      includeTabsContent: true,
+                      fields: DOCUMENT_GET_FULL_WITH_TABS,
+                    })
+                  ).data,
+                  args.tableId,
+                  args.tabId
+                );
+          if (!currentTable) {
+            throw new UserError(
+              `Table "${args.tableId}" could not be re-fetched while populating inserted rows.`
+            );
+          }
+          await replaceTableRowDataInternal(
+            docs,
+            args.documentId,
+            currentTable,
+            firstInsertedRowIndex + offset,
+            rowValues,
+            args.tabId
+          );
+        }
+
+        return `Inserted ${args.rows.length} row(s) with data ${args.insertBelow ? 'below' : 'above'} row ${args.referenceRowIndex} in table ${args.tableId}.`;
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
         log.error(`insertTableRow failed for ${args.tableId} in doc ${args.documentId}: ${message}`);
