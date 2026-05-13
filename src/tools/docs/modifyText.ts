@@ -126,7 +126,8 @@ export function register(server: FastMCP) {
           const docInfo = await docs.documents.get({
             documentId: args.documentId,
             includeTabsContent: true,
-            fields: 'tabs(tabProperties,documentTab)',
+            suggestionsViewMode: 'PREVIEW_WITHOUT_SUGGESTIONS',
+            fields: 'tabs(tabProperties(tabId))',
           });
           const targetTab = GDocsHelpers.findTabById(docInfo.data, args.tabId);
           if (!targetTab) {

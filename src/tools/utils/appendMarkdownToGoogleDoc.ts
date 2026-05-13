@@ -43,8 +43,9 @@ export function register(server: FastMCP) {
         const doc = await docs.documents.get({
           documentId: args.documentId,
           includeTabsContent: !!args.tabId,
+          suggestionsViewMode: 'PREVIEW_WITHOUT_SUGGESTIONS',
           fields: args.tabId
-            ? 'tabs(tabProperties,documentTab(body(content(endIndex))))'
+            ? 'tabs(tabProperties(tabId),documentTab(body(content(endIndex))))'
             : 'body(content(endIndex))',
         });
 

@@ -47,8 +47,9 @@ export function register(server: FastMCP) {
         const doc = await docs.documents.get({
           documentId: args.documentId,
           includeTabsContent: !!args.tabId,
+          suggestionsViewMode: 'PREVIEW_WITHOUT_SUGGESTIONS',
           fields: args.tabId
-            ? 'tabs(tabProperties,documentTab(body(content(startIndex,endIndex))))'
+            ? 'tabs(tabProperties(tabId),documentTab(body(content(startIndex,endIndex))))'
             : 'body(content(startIndex,endIndex))',
         });
 
@@ -113,8 +114,9 @@ export function register(server: FastMCP) {
           const docAfterDelete = await docs.documents.get({
             documentId: args.documentId,
             includeTabsContent: !!args.tabId,
+            suggestionsViewMode: 'PREVIEW_WITHOUT_SUGGESTIONS',
             fields: args.tabId
-              ? 'tabs(tabProperties,documentTab(body(content(startIndex,endIndex))))'
+              ? 'tabs(tabProperties(tabId),documentTab(body(content(startIndex,endIndex))))'
               : 'body(content(startIndex,endIndex))',
           });
 
