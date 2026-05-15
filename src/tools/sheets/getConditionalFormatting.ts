@@ -27,7 +27,7 @@ export function register(server: FastMCP) {
     name: 'getConditionalFormatting',
     description:
       'Lists all conditional formatting rules for a sheet as JSON. Each rule includes its index (needed for deleteConditionalFormatting), kind (BOOLEAN or GRADIENT), ranges, condition type/values, and applied formats (colors, bold, italic).',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

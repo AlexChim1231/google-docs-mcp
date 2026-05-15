@@ -40,7 +40,7 @@ export function register(server: FastMCP) {
           ),
         columns: z
           .array(
-            z.object({
+            z.strictObject({
               columnName: z.string().min(1).describe('Display name for the column header.'),
               columnType: ColumnTypeSchema.optional().describe(
                 'Data type for the column (default: TEXT).'

@@ -8,7 +8,7 @@ export function register(server: FastMCP) {
     name: 'quickAddEvent',
     description:
       'Creates a calendar event from a natural-language string using Google Calendar\'s quick-add parser. Examples: "Lunch with Sarah tomorrow at 12pm", "Dentist appointment next Tuesday 3-4pm", "Team standup every weekday 9am". Faster than createEvent when you don\'t need attendees, descriptions, or precise control over fields.',
-    parameters: z.object({
+    parameters: z.strictObject({
       calendarId: z
         .string()
         .optional()

@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'addSheet',
     description:
       "Adds a new sheet (tab) to an existing spreadsheet. Returns the new sheet's title and ID.",
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

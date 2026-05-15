@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'ungroupAllRows',
     description:
       'Removes all row groupings from a sheet by deleting the entire row dimension group. Use before re-running groupRows to prevent duplicate collapse widgets from accumulating across report refreshes.',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

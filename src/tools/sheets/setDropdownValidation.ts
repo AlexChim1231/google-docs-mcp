@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'setDropdownValidation',
     description:
       'Adds or removes a dropdown list on a range of cells. Provide values to create a dropdown restricting input to those options. Omit values to remove dropdown validation from the range.',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

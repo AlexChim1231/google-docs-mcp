@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'updateTableRange',
     description:
       "Modifies a table's dimensions (add/remove rows and columns) by updating its range. The new range must include the original table range.",
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

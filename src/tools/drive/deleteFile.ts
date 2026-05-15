@@ -8,7 +8,7 @@ export function register(server: FastMCP) {
     name: 'deleteFile',
     description:
       'Moves a file or folder to the trash, or permanently deletes it. Set permanent=true for irreversible deletion.',
-    parameters: z.object({
+    parameters: z.strictObject({
       fileId: z
         .string()
         .describe('The file or folder ID from a Google Drive URL or a previous tool result.'),

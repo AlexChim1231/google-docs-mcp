@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'groupRows',
     description:
       'Creates collapsible row groups in a Google Sheet using the Sheets API addDimensionGroup request. Each group specifies a range of rows (1-based, inclusive) to collapse.',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(
@@ -21,7 +21,7 @@ export function register(server: FastMCP) {
         .describe('Name of the sheet/tab. Defaults to the first sheet if not provided.'),
       groups: z
         .array(
-          z.object({
+          z.strictObject({
             startRowIndex: z
               .number()
               .int()

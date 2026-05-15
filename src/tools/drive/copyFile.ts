@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'copyFile',
     description:
       "Creates a copy of a file or document in Google Drive. Returns the new copy's ID and URL.",
-    parameters: z.object({
+    parameters: z.strictObject({
       fileId: z
         .string()
         .describe('The file or folder ID from a Google Drive URL or a previous tool result.'),

@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     description:
       'Deletes a chart from a Google Spreadsheet by chart ID. ' +
       'The chart ID is returned when a chart is created with insertChart.',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

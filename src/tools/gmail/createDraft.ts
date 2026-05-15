@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'createDraft',
     description:
       'Creates a Gmail draft (does NOT send). Use this for AI-composed emails that the user should review before sending. The draft appears in the Gmail Drafts folder and can be sent later with sendDraft, edited with updateDraft, or deleted with deleteDraft. Supports threading via replyToMessageId.',
-    parameters: z.object({
+    parameters: z.strictObject({
       to: z
         .union([z.string(), z.array(z.string()).min(1)])
         .describe('Recipient email address, or an array of recipient email addresses.'),

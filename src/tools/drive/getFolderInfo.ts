@@ -8,7 +8,7 @@ export function register(server: FastMCP) {
     name: 'getFolderInfo',
     description:
       'Gets metadata about a Drive folder including its name, owner, sharing status, and parent folder.',
-    parameters: z.object({
+    parameters: z.strictObject({
       folderId: z.string().describe('ID of the folder to get information about.'),
     }),
     execute: async (args, { log }) => {

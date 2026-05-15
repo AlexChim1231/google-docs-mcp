@@ -8,7 +8,7 @@ export function register(server: FastMCP) {
     name: 'deleteEvent',
     description:
       'Deletes an event from a Google Calendar. This is permanent — the event is removed, not trashed. Use sendUpdates to email cancellations to attendees.',
-    parameters: z.object({
+    parameters: z.strictObject({
       calendarId: z
         .string()
         .optional()

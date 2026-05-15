@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'listTables',
     description:
       'Lists all tables in a spreadsheet or specific sheet. Use this to discover table names and IDs before performing table operations.',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

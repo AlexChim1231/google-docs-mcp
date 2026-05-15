@@ -7,7 +7,7 @@ export function register(server: FastMCP) {
   server.addTool({
     name: 'renameFile',
     description: 'Renames a file or folder in Google Drive. Returns the updated file info.',
-    parameters: z.object({
+    parameters: z.strictObject({
       fileId: z
         .string()
         .describe('The file or folder ID from a Google Drive URL or a previous tool result.'),

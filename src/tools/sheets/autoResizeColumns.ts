@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'autoResizeColumns',
     description:
       'Auto-resizes columns in a spreadsheet to fit their content. Optionally restrict to a column range (e.g., "A:S"); defaults to all columns.',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'listSheetsComments',
     description:
       'Lists all comments in a Google Spreadsheet. Filter by sheet name, specific row(s), specific cell, or a cell range. Returns comment IDs needed for getSheetsComment, replyToSheetsComment, resolveSheetsComment, or deleteSheetsComment.',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'resolveSheetsComment',
     description:
       'Marks a comment as resolved in a Google Spreadsheet. Note: resolved status may not persist in the Sheets UI due to a Drive API limitation.',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

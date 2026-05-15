@@ -8,7 +8,7 @@ export function register(server: FastMCP) {
     name: 'moveFile',
     description:
       'Moves a file or folder to a different Drive folder. By default adds the new parent while keeping existing parents; set removeFromAllParents=true for a true move.',
-    parameters: z.object({
+    parameters: z.strictObject({
       fileId: z
         .string()
         .describe('The file or folder ID from a Google Drive URL or a previous tool result.'),

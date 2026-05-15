@@ -102,7 +102,9 @@ export async function extractMarkdown(
   const res = await docs.documents.get({
     documentId,
     includeTabsContent: !!tabId,
-    fields: tabId ? '*' : '*',
+    fields: tabId
+      ? 'title,documentId,tabs(tabProperties,childTabs,documentTab(body,documentStyle,namedStyles,lists,inlineObjects,positionedObjects))'
+      : 'title,documentId,body,documentStyle,namedStyles,lists,inlineObjects,positionedObjects',
   });
 
   if (tabId) {

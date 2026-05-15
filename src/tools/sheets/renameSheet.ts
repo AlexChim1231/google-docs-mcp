@@ -8,7 +8,7 @@ export function register(server: FastMCP) {
     name: 'renameSheet',
     description:
       'Renames a sheet (tab) in a spreadsheet. Use getSpreadsheetInfo to find the numeric sheet ID.',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

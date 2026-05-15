@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'getSpreadsheetInfo',
     description:
       'Gets metadata about a spreadsheet including its title, URL, and a list of all sheets with their dimensions.',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

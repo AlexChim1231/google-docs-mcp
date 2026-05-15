@@ -27,7 +27,7 @@ export function register(server: FastMCP) {
       '(Sheets, PDFs, images, folders, etc.) and supports sort direction and size-based ordering. ' +
       'Use mimeType shortcuts: "document", "spreadsheet", "presentation", "folder", "form", "pdf", "zip" ' +
       'or pass any full MIME type string.',
-    parameters: z.object({
+    parameters: z.strictObject({
       maxResults: z
         .number()
         .int()

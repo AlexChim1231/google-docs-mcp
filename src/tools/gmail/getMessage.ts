@@ -35,7 +35,7 @@ export function register(server: FastMCP) {
     name: 'getMessage',
     description:
       'Fetches a single Gmail message by ID with headers, decoded plain-text body, HTML body, and a list of attachments (metadata only). Use listMessages to discover message IDs.',
-    parameters: z.object({
+    parameters: z.strictObject({
       messageId: z.string().describe('The Gmail message ID, typically from listMessages results.'),
       format: z
         .enum(['full', 'metadata', 'minimal'])

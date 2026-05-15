@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'copyFormatting',
     description:
       'Copies formatting (not values) from a source range to a destination range within the same spreadsheet. Copies bold, colors, borders, number formats, etc.',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

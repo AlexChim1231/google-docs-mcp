@@ -8,7 +8,7 @@ export function register(server: FastMCP) {
     name: 'copySheetTo',
     description:
       'Copies a sheet (tab) from one spreadsheet to another spreadsheet. Use getSpreadsheetInfo to find the numeric sheet ID. The copied sheet will be appended to the destination spreadsheet.',
-    parameters: z.object({
+    parameters: z.strictObject({
       sourceSpreadsheetId: z.string().describe('The spreadsheet ID of the source file.'),
       sheetId: z
         .number()

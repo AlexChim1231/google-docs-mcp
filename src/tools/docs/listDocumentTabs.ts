@@ -28,8 +28,8 @@ export function register(server: FastMCP) {
           includeTabsContent: true,
           // Only get essential fields for tab listing
           fields: args.includeContent
-            ? 'title,tabs' // Get all tab data if we need content summary
-            : 'title,tabs(tabProperties,childTabs)', // Otherwise just structure
+            ? 'title,tabs(tabProperties,childTabs(tabProperties,childTabs(tabProperties,childTabs(tabProperties))),documentTab(body(content(endIndex))))' // Explicit fields to avoid comment-field validation
+            : 'title,tabs(tabProperties,childTabs(tabProperties,childTabs(tabProperties,childTabs(tabProperties))))', // Recursive structure only
         });
 
         const docTitle = res.data.title || 'Untitled Document';

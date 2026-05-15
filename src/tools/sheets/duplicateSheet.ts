@@ -8,7 +8,7 @@ export function register(server: FastMCP) {
     name: 'duplicateSheet',
     description:
       'Duplicates a sheet (tab) within a spreadsheet, copying all values, formulas, formatting, validations, and conditional formatting. Use getSpreadsheetInfo to find the numeric sheet ID.',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

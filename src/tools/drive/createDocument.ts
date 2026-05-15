@@ -10,7 +10,7 @@ export function register(server: FastMCP) {
     name: 'createDocument',
     description:
       'Creates a new empty Google Document. Optionally places it in a specific folder and adds initial text content.',
-    parameters: z.object({
+    parameters: z.strictObject({
       title: z.string().min(1).describe('Title for the new document.'),
       parentFolderId: z
         .string()

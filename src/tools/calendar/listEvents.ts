@@ -8,7 +8,7 @@ export function register(server: FastMCP) {
     name: 'listEvents',
     description:
       "Lists or searches Google Calendar events. Defaults to the user's primary calendar starting now. Use timeMin/timeMax (RFC3339 timestamps) to bound the window, q for free-text search, and maxResults to cap the count. Returns event IDs needed for updateEvent and deleteEvent.",
-    parameters: z.object({
+    parameters: z.strictObject({
       calendarId: z
         .string()
         .optional()

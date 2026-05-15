@@ -3,13 +3,14 @@ import { UserError } from 'fastmcp';
 import { z } from 'zod';
 import { getSheetsClient } from '../../clients.js';
 import * as SheetsHelpers from '../../googleSheetsApiHelpers.js';
+import { SpreadsheetCellValueSchema } from '../../types.js';
 
 export function register(server: FastMCP) {
   server.addTool({
     name: 'appendRows',
     description:
       'Appends rows to the end of a sheet. Data is added after the last row with content in the specified range.',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(
@@ -21,7 +22,7 @@ export function register(server: FastMCP) {
           'A1 notation range indicating where to append (e.g., "A1" or "Sheet1!A1"). Data will be appended starting from this range.'
         ),
       values: z
-        .array(z.array(z.any()))
+        .array(z.array(SpreadsheetCellValueSchema))
         .describe('2D array of values to append. Each inner array represents a row.'),
       valueInputOption: z
         .enum(['RAW', 'USER_ENTERED'])

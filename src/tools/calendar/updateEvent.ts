@@ -10,7 +10,7 @@ export function register(server: FastMCP) {
     name: 'updateEvent',
     description:
       'Updates an existing Google Calendar event with PATCH semantics — only the fields you provide are changed; everything else stays the same. Common uses: reschedule (set start+end), retitle (set summary), add/remove attendees (set attendees array which fully replaces).',
-    parameters: z.object({
+    parameters: z.strictObject({
       calendarId: z
         .string()
         .optional()
@@ -24,7 +24,7 @@ export function register(server: FastMCP) {
       end: eventDateTimeSchema.optional().describe('New end time.'),
       attendees: z
         .array(
-          z.object({
+          z.strictObject({
             email: z.string(),
             optional: z.boolean().optional(),
           })

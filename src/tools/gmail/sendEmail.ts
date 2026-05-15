@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'sendEmail',
     description:
       'Sends a plain-text email from the authenticated Gmail account. Supports cc/bcc and optional threading by passing replyToMessageId (which copies threadId and sets In-Reply-To/References so the reply lands in the same thread).',
-    parameters: z.object({
+    parameters: z.strictObject({
       to: z
         .union([z.string(), z.array(z.string()).min(1)])
         .describe('Recipient email address, or an array of recipient email addresses.'),

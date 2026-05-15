@@ -17,7 +17,7 @@ const RangeTarget = z
     path: ['endIndex'],
   });
 
-const InsertionTarget = z.object({
+const InsertionTarget = z.strictObject({
   insertionIndex: z.number().int().min(1).describe('Index to insert at (1-based).'),
 });
 
@@ -126,7 +126,8 @@ export function register(server: FastMCP) {
           const docInfo = await docs.documents.get({
             documentId: args.documentId,
             includeTabsContent: true,
-            fields: 'tabs(tabProperties,documentTab)',
+            suggestionsViewMode: 'PREVIEW_WITHOUT_SUGGESTIONS',
+            fields: 'tabs(tabProperties(tabId))',
           });
           const targetTab = GDocsHelpers.findTabById(docInfo.data, args.tabId);
           if (!targetTab) {

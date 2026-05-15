@@ -8,7 +8,7 @@ export function register(server: FastMCP) {
     name: 'deleteDraft',
     description:
       'Permanently deletes a Gmail draft. This is irreversible — the draft is removed entirely, not moved to Trash. Use when an AI-composed draft was rejected or replaced.',
-    parameters: z.object({
+    parameters: z.strictObject({
       draftId: z
         .string()
         .describe('The Gmail draft ID to delete (from createDraft or listDrafts).'),

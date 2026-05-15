@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'clearRange',
     description:
       'Clears all cell values in a range without deleting the cells themselves. Formatting is preserved.',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

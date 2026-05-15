@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'listMessages',
     description:
       'Lists Gmail messages for the authenticated user. Supports the full Gmail search syntax via the q parameter (e.g. "is:unread", "from:alice@example.com", "subject:invoice newer_than:7d"). Returns message IDs with sender, subject, date, and snippet for each result.',
-    parameters: z.object({
+    parameters: z.strictObject({
       maxResults: z
         .number()
         .int()

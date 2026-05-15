@@ -10,7 +10,7 @@ export function register(server: FastMCP) {
     name: 'protectRange',
     description:
       "Locks (protects) a range or an entire sheet to prevent accidental edits. Optionally specify a description. The protection applies to the authenticated user's account.",
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

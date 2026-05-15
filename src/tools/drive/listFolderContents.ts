@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'listFolderContents',
     description:
       "Lists files and subfolders within a Drive folder. Use folderId='root' to browse the top-level of the Drive.",
-    parameters: z.object({
+    parameters: z.strictObject({
       folderId: z
         .string()
         .describe('ID of the folder to list contents of. Use "root" for the root Drive folder.'),

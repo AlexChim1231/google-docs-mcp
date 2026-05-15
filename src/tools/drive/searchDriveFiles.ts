@@ -26,7 +26,7 @@ export function register(server: FastMCP) {
       'Unlike searchDocuments (which only searches Google Docs), this tool finds Sheets, PDFs, ' +
       'presentations, folders, and any other Drive file. Supports filtering by MIME type, ' +
       'scoping to a specific folder subtree, controllable sort order, and pagination via pageToken.',
-    parameters: z.object({
+    parameters: z.strictObject({
       query: z.string().min(1).describe('Search term to find in file names or content.'),
       searchIn: z
         .enum(['name', 'content', 'both'])

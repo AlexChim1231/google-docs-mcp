@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'createFolder',
     description:
       'Creates a new folder in Google Drive. Optionally places it inside an existing parent folder.',
-    parameters: z.object({
+    parameters: z.strictObject({
       name: z.string().min(1).describe('Name for the new folder.'),
       parentFolderId: z
         .string()

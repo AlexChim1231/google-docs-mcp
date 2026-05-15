@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'setColumnWidths',
     description:
       'Sets the width (in pixels) of one or more columns in a spreadsheet. Accepts multiple column specs in a single call, each targeting a single column or a contiguous range (e.g., "A", "B:D").',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(
@@ -21,7 +21,7 @@ export function register(server: FastMCP) {
         .describe('Name of the sheet/tab. Defaults to the first sheet if not provided.'),
       columnWidths: z
         .array(
-          z.object({
+          z.strictObject({
             column: z
               .string()
               .describe('Column or column range in A1 notation (e.g., "A", "B:D").'),

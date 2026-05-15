@@ -10,7 +10,7 @@ export function register(server: FastMCP) {
     name: 'createEvent',
     description:
       'Creates a new event on a Google Calendar. Supports timed events (start/end with dateTime) and all-day events (start/end with date). Set sendUpdates to email invitations to attendees.',
-    parameters: z.object({
+    parameters: z.strictObject({
       calendarId: z
         .string()
         .optional()
@@ -25,7 +25,7 @@ export function register(server: FastMCP) {
       ),
       attendees: z
         .array(
-          z.object({
+          z.strictObject({
             email: z.string().describe('Attendee email address.'),
             optional: z.boolean().optional().describe('Mark attendee as optional.'),
           })

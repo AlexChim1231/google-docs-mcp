@@ -31,7 +31,7 @@ export function register(server: FastMCP) {
     name: 'triageInbox',
     description:
       "Composite tool: fetches the user's most recent unread Gmail messages with full content and heuristic categorization in a single call. Returns headers, body excerpts, labels, plus per-message signals (newsletter, meeting reference, contains question, action requested) AND aggregate stats (total unread, top senders, breakdown by category). Designed for AI inbox triage workflows — use the returned data to decide which messages need a reply, can be archived, or warrant a draft response. Pairs naturally with createDraft, modifyMessageLabels, and trashMessage.",
-    parameters: z.object({
+    parameters: z.strictObject({
       maxResults: z
         .number()
         .int()

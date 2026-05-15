@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'replyToSheetsComment',
     description:
       'Adds a reply to an existing comment thread in a Google Spreadsheet. Use listSheetsComments or getSheetsComment to find the comment ID.',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

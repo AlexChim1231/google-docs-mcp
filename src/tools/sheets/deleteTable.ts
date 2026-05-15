@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'deleteTable',
     description:
       'Deletes a table from a spreadsheet. By default, only removes the table object and formatting while keeping the cell data. Optionally clears the data as well.',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

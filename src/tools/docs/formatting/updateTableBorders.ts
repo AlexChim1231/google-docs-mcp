@@ -6,7 +6,7 @@ import { DocumentIdParameter, validateHexColor, hexToRgbColor } from '../../../t
 import { getTableById } from '../structureHelpers.js';
 import * as GDocsHelpers from '../../../googleDocsApiHelpers.js';
 
-const BorderSideSchema = z.object({
+const BorderSideSchema = z.strictObject({
   color: z
     .string()
     .refine(validateHexColor, { message: 'Invalid hex color format (e.g., #000000).' })

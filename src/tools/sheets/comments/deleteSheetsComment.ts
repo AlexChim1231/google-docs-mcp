@@ -8,7 +8,7 @@ export function register(server: FastMCP) {
   server.addTool({
     name: 'deleteSheetsComment',
     description: 'Permanently deletes a comment and all its replies from a Google Spreadsheet.',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

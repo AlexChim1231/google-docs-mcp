@@ -8,7 +8,7 @@ export function register(server: FastMCP) {
     name: 'listLabels',
     description:
       'Lists all Gmail labels for the authenticated user, including system labels (INBOX, SENT, STARRED, UNREAD, etc.) and custom user-created labels. Use the returned IDs with modifyMessageLabels or listMessages labelIds filter.',
-    parameters: z.object({}),
+    parameters: z.strictObject({}),
     execute: async (_args, { log }) => {
       const gmail = await getGmailClient();
       log.info('Listing Gmail labels');

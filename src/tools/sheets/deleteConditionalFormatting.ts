@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'deleteConditionalFormatting',
     description:
       'Deletes one or more conditional formatting rules from a sheet by their index. Use getConditionalFormatting to list existing rules and their indices.',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

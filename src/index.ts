@@ -21,7 +21,7 @@ import {
   installCachedToolsListHandler,
 } from './cachedToolsList.js';
 import { initializeGoogleClient } from './clients.js';
-import { registerAllTools } from './tools/index.js';
+import { parseEnabledToolGroups, registerAllTools } from './tools/index.js';
 import { wrapServerForRemote } from './remoteWrapper.js';
 import { registerLandingPage } from './landingPage.js';
 import { registerDownloadRoute } from './downloadProxy.js';
@@ -199,7 +199,15 @@ const server = new FastMCP({
 const registeredTools: Parameters<FastMCP['addTool']>[0][] = [];
 collectToolsWhileRegistering(server, registeredTools);
 if (isRemote) wrapServerForRemote(server);
-registerAllTools(server);
+let enabledToolGroups: ReturnType<typeof parseEnabledToolGroups>;
+try {
+  enabledToolGroups = parseEnabledToolGroups();
+  registerAllTools(server, enabledToolGroups);
+  logger.info(`Registered tool groups: ${enabledToolGroups.join(', ')}.`);
+} catch (error: any) {
+  logger.error(`FATAL: Invalid MCP_TOOL_GROUPS: ${error.message || error}`);
+  process.exit(1);
+}
 
 try {
   if (isRemote) {

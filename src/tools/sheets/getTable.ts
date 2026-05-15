@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'getTable',
     description:
       'Gets detailed information about a specific table including its columns, range, and properties. Use the table name or ID returned by listTables.',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

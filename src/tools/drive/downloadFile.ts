@@ -55,7 +55,7 @@ function ensureWithinCwd(filePath: string): string {
   return resolved;
 }
 
-const DownloadFileParameters = z.object({
+const DownloadFileParameters = z.strictObject({
   fileId: z.string().describe('The file ID from a Google Drive URL or previous tool result.'),
   savePath: z
     .string()

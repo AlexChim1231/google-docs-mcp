@@ -91,7 +91,7 @@ export function register(server: FastMCP) {
     name: 'readCellFormat',
     description:
       'Reads the formatting/style of cells in a given range. Returns formatting details like bold, italic, fontSize, fontFamily, colors, alignment, borders, and number format per cell.',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

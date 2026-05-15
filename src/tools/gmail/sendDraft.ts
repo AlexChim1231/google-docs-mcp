@@ -8,7 +8,7 @@ export function register(server: FastMCP) {
     name: 'sendDraft',
     description:
       'Sends an existing Gmail draft. After sending, the draft is removed and the message appears in Sent. This is the second half of the compose-review-send flow that pairs with createDraft.',
-    parameters: z.object({
+    parameters: z.strictObject({
       draftId: z.string().describe('The Gmail draft ID to send (from createDraft or listDrafts).'),
     }),
     execute: async (args, { log }) => {

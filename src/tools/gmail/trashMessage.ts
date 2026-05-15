@@ -8,7 +8,7 @@ export function register(server: FastMCP) {
     name: 'trashMessage',
     description:
       'Moves a Gmail message to Trash. This is the same as clicking Delete in the Gmail UI — reversible from the Trash folder for 30 days. Not a permanent delete.',
-    parameters: z.object({
+    parameters: z.strictObject({
       messageId: z.string().describe('The Gmail message ID to move to Trash.'),
     }),
     execute: async (args, { log }) => {

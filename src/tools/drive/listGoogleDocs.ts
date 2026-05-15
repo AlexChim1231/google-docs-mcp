@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'listDocuments',
     description:
       'Lists Google Documents in your Drive, optionally filtered by name or content. Use modifiedAfter to find recently changed documents.',
-    parameters: z.object({
+    parameters: z.strictObject({
       maxResults: z
         .number()
         .int()

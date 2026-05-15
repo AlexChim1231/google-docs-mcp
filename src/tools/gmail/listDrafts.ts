@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'listDrafts',
     description:
       'Lists Gmail drafts for the authenticated user. Returns draft IDs along with the recipient, subject, snippet, and date for each. Use sendDraft, updateDraft, or deleteDraft to act on a returned draft.',
-    parameters: z.object({
+    parameters: z.strictObject({
       maxResults: z
         .number()
         .int()

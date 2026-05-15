@@ -11,7 +11,7 @@ export function register(server: FastMCP) {
       'Inserts a chart into a Google Sheet. Supports bar, column, line, area, scatter, pie, donut, and treemap (hierarchical) chart types. ' +
       'For treemap charts, the data must have a label column and a parent label column (use empty string for root nodes) plus a numeric size column. ' +
       'Chart is placed as an overlay at the specified anchor cell.',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

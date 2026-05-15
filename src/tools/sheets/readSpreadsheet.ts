@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'readSpreadsheet',
     description:
       'Reads data from a range in a spreadsheet. Returns rows as arrays. Use A1 notation for the range (e.g., "Sheet1!A1:C10").',
-    parameters: z.object({
+    parameters: z.strictObject({
       spreadsheetId: z
         .string()
         .describe(

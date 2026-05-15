@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'getDraft',
     description:
       'Fetches a single Gmail draft by ID with full headers and body. Use listDrafts to discover draft IDs.',
-    parameters: z.object({
+    parameters: z.strictObject({
       draftId: z.string().describe('The Gmail draft ID, typically from listDrafts results.'),
     }),
     execute: async (args, { log }) => {

@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'updateDraft',
     description:
       'Replaces the contents of an existing Gmail draft. The new contents fully overwrite the old draft (this is a full replace, not a patch). Use this when iterating on an AI-composed draft before sending.',
-    parameters: z.object({
+    parameters: z.strictObject({
       draftId: z.string().describe('The Gmail draft ID to update.'),
       to: z
         .union([z.string(), z.array(z.string()).min(1)])

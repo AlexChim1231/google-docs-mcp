@@ -9,7 +9,7 @@ export function register(server: FastMCP) {
     name: 'searchDocuments',
     description:
       'Searches for documents by name, content, or both. Use listDocuments for browsing and this tool for targeted queries.',
-    parameters: z.object({
+    parameters: z.strictObject({
       query: z.string().min(1).describe('Search term to find in document names or content.'),
       searchIn: z
         .enum(['name', 'content', 'both'])
