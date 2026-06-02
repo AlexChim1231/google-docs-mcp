@@ -22,6 +22,7 @@ const mockGetDocsClient = vi.mocked(getDocsClient);
 // and then invoking the execute handler directly.
 // Simpler: import register() and capture the tool config.
 import { register } from './findAndReplace.js';
+import { PLAIN_TEXT_TOOL_MARKDOWN_ERROR } from '../../textContentGuards.js';
 
 let toolExecute: (args: any, context: any) => Promise<string>;
 
@@ -132,5 +133,34 @@ describe('findAndReplace', () => {
     );
 
     expect(result).toBe('Replaced 0 occurrence(s) of "x" with "y".');
+  });
+
+  it('should reject formatted markdown in replaceText', async () => {
+    await expect(
+      toolExecute(
+        {
+          documentId: 'doc1',
+          findText: '{Adjustment Notes}',
+          replaceText: '1. First item\\n2. Second item',
+        },
+        { log: mockLog }
+      )
+    ).rejects.toThrow(PLAIN_TEXT_TOOL_MARKDOWN_ERROR);
+
+    expect(mockExecuteBatchUpdate).not.toHaveBeenCalled();
+  });
+
+  it('should normalize literal \\n escapes for plain text replacements', async () => {
+    mockExecuteBatchUpdate.mockResolvedValue({
+      replies: [{ replaceAllText: { occurrencesChanged: 1 } }],
+    });
+
+    await toolExecute(
+      { documentId: 'doc1', findText: '{Notes}', replaceText: 'Line one\\nLine two' },
+      { log: mockLog }
+    );
+
+    const req = mockExecuteBatchUpdate.mock.calls[0][2][0].replaceAllText!;
+    expect(req.replaceText).toBe('Line one\nLine two');
   });
 });

@@ -6,6 +6,11 @@ import { getDocsClient } from '../../clients.js';
 import { DocumentIdParameter, TextFindParameter, TextStyleParameters } from '../../types.js';
 import type { TextStyleArgs } from '../../types.js';
 import * as GDocsHelpers from '../../googleDocsApiHelpers.js';
+import {
+  looksLikeMarkdownStructuredContent,
+  normalizeEscapedWhitespace,
+  PLAIN_TEXT_TOOL_MARKDOWN_ERROR,
+} from '../../textContentGuards.js';
 
 const RangeTarget = z
   .object({
@@ -25,7 +30,12 @@ const ModifyTextParameters = DocumentIdParameter.extend({
   target: z
     .union([RangeTarget, TextFindParameter, InsertionTarget])
     .describe('Target by range indices, text search, or insertion index.'),
-  text: z.string().optional().describe('New text to insert or replace with.'),
+  text: z
+    .string()
+    .optional()
+    .describe(
+      'Plain text to insert or replace with. For formatted content (markdown), use replaceRangeWithMarkdown or appendMarkdown instead.'
+    ),
   style: TextStyleParameters.optional().describe('Text formatting to apply.'),
   tabId: z
     .string()
@@ -171,10 +181,18 @@ export function register(server: FastMCP) {
         // Clamp to minimum 1 (index 0 is the document section break)
         if (startIndex < 1) startIndex = 1;
 
+        let text = args.text;
+        if (text !== undefined) {
+          if (looksLikeMarkdownStructuredContent(text)) {
+            throw new UserError(PLAIN_TEXT_TOOL_MARKDOWN_ERROR);
+          }
+          text = normalizeEscapedWhitespace(text);
+        }
+
         const requests = buildModifyTextRequests({
           startIndex,
           endIndex,
-          text: args.text,
+          text,
           style: args.style,
           tabId: args.tabId,
         });
